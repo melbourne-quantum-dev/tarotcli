@@ -1,0 +1,41 @@
+[project]
+name = "tarotcli"
+version = "1.0.0"
+description = "Minimalist tarot reading CLI with optional AI interpretation"
+authors = [{name = "melbourne-quantum-dev", email = "leonardo97@tuta.com"}]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+dependencies = [
+    "pydantic>=2.5.0",
+    "litellm>=1.0.0",
+    "typer>=0.9.0",
+    "questionary>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+tarotcli = "tarotcli.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

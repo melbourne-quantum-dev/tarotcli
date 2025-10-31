@@ -1,0 +1,1 @@
+JSONL file containing 78 cards (22 Major Arcana + 56 Minor Arcana) with complete card data.
