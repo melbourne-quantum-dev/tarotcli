@@ -20,8 +20,10 @@ wheels/
 .installed.cfg
 *.egg
 
-# Private documentation
-docs/private
+# Personal development docs
+docs/private/
+.private/
+*-blueprint.md
 
 # Virtual environments
 venv/
