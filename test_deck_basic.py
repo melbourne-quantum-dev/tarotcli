@@ -45,8 +45,7 @@ def test_basic_deck_operations():
                 "name": dc.card.name,
                 "position": dc.position,
                 "reversed": dc.reversed,
-                "meaning": dc.effective_meaning,
-                "keywords": dc.card.keywords
+                "effective_meaning": dc.effective_meaning,
             }
             for dc in drawn
         ]
