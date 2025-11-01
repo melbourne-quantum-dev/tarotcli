@@ -203,6 +203,8 @@ This implementation uses the **Rider-Waite-Smith** deck, published 1909-1911 by 
 
 **Verification status**: 100% complete, no null values in essential fields. This dataset is **solid heritage foundation** - authentic source material, no need to regenerate or "improve" with AI.
 
+**Known Limitation**: Keywords are extracted from upright meanings only, as Waite's original text doesn't provide separate keyword lists for reversed cards. The full `upright_meaning` and `reversed_meaning` fields are orientation-specific and provide complete interpretations. Keywords serve as thematic reference regardless of orientation.
+
 **Alternative decks** (Thoth, Marseille, Visconti-Sforza) have their adherents, but RWS is the **lingua franca** of tarot. Building on this foundation ensures the application speaks the language most practitioners understand.
 
 ---
