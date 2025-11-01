@@ -20,10 +20,20 @@ wheels/
 .installed.cfg
 *.egg
 
-# Personal development docs
+# Personal development docs (symlinked to Obsidian)
+docs/private
 docs/private/
-.private/
+
+# In case symlink itself gets tracked
+private
+
+# Personal notes
+*.personal.md
 *-blueprint.md
+*-session-*.md
+
+# Personal Claude Code context
+CLAUDE.local.md
 
 # Virtual environments
 venv/
