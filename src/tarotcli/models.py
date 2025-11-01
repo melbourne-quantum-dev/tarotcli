@@ -29,7 +29,6 @@ class Card(BaseModel):
     upright_meaning: str
     reversed_meaning: str
     description: str
-    keywords: list[str]
     
 class DrawnCard(BaseModel):
     """Card as drawn with orientation."""
