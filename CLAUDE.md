@@ -93,7 +93,7 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 
 ## Important Notes
 
-- **Dataset integrity:** `data/tarot_cards_RW.jsonl` is verified complete (78 cards, all required fields from *Waite's Pictorial Key*). Known limitation: keywords extracted from upright meanings only (source material doesn't provide reversed keywords). Full `upright_meaning` and `reversed_meaning` fields are orientation-specific. Do not regenerate dataset.
+- **Dataset integrity**: `data/tarot_cards_RW.jsonl` contains 78 complete cards with essential fields from A.E. Waite's *The Pictorial Key to the Tarot* (1911). Dataset matches ekelen's tarot-api source structure. Do not regenerate or modify.
 - **Graceful degradation**: Any function that calls LLM must catch all exceptions and return baseline interpretation. Readings NEVER fail.
 - **No premature optimization**: Implement according to blueprint, resist feature additions until milestone complete.
 
