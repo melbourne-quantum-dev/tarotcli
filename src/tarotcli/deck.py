@@ -2,7 +2,7 @@
 
 This module implements the core deck mechanics:
 - Load 78 cards from JSONL with validation
-- Shuffle deck with proper randomization
+- Shuffle deck with proper randomisation
 - Draw cards with 50% reversal probability
 - Track remaining cards in current shuffle
 
@@ -25,10 +25,39 @@ import random
 from tarotcli.models import Card, DrawnCard
 
 class TarotDeck:
-    """Manages the 78-card tarot deck."""
+    """
+    Manages the 78-card Rider-Waite tarot deck.
+    
+    Handles loading cards from JSONL dataset, shuffling, and drawing with
+    randomised orientations (upright/reversed). Maintains state of remaining
+    cards in current shuffle.
+    
+    Attributes:
+        cards (List[Card]): Complete 78-card deck
+        remaining (List[Card]): Cards not yet drawn in current shuffle
+        
+    Example:
+        >>> deck = TarotDeck(Path("data/tarot_cards_RW.jsonl"))
+        >>> deck.shuffle()
+        >>> drawn = deck.draw(3)  # Draw 3 cards
+        >>> print(f"Drew {len(drawn)} cards, {len(deck.remaining)} remain")
+    """
     
     def __init__(self, data_path: Path):
-        """Load cards from JSONL file."""
+        """
+        Initialise deck by loading cards from JSONL file.
+        
+        Args:
+            data_path: Path to tarot_cards_RW.jsonl file
+            
+        Raises:
+            FileNotFoundError: If data_path doesn't exist
+            ValueError: If JSONL contains invalid card data
+            
+        Note:
+            Each line in JSONL must be valid JSON matching Card schema.
+            File should contain exactly 78 cards (22 major + 56 minor).
+        """
         if not data_path.exists():
             raise FileNotFoundError(f"Card data not found at {data_path}")
         
@@ -46,12 +75,53 @@ class TarotDeck:
         self.remaining = self.cards.copy()
     
     def shuffle(self) -> None:
-        """Shuffle deck, reset to all 78 cards."""
+        """
+        Reset to full 78-card deck with randomised order.
+        
+        **Call this ONCE per reading** (before drawing cards for a spread).
+        Calling shuffle() again will reset the deck and invalidate any
+        previously drawn cards.
+        
+        Physical analogy: Thoroughly mixing the deck before starting a reading.
+        Card orientations (upright/reversed) are determined at draw time,
+        not during shuffle.
+        
+        Note:
+            Do NOT call shuffle() between draws for the same reading.
+            Use reset() only for testing with predictable order.
+        """
         self.remaining = self.cards.copy()
         random.shuffle(self.remaining)
-    
+
     def draw(self, count: int) -> List[DrawnCard]:
-        """Draw N cards with randomised reversals."""
+        """
+        Draw specified number of cards with randomised orientations.
+        
+        Each card has 50% chance of being reversed. Cards are removed from
+        remaining deck (no replacement until shuffle() called).
+        
+        **Orientation determined at draw time**, not during shuffle. This is
+        a design choice for simplicity - the end result (50% reversal rate)
+        matches physical practice even if the mechanism differs.
+        
+        Args:
+            count: Number of cards to draw
+            
+        Returns:
+            List of DrawnCard objects with card, orientation, and position
+            
+        Raises:
+            ValueError: If count > remaining cards in deck
+            
+        Physical analogy: Drawing cards from top of shuffled deck and
+        placing them in spread positions.
+        
+        Example:
+            >>> deck.shuffle()  # Once per reading
+            >>> cards = deck.draw(10)  # Celtic Cross
+            >>> # Now 68 cards remaining
+            >>> # DO NOT shuffle() again until next reading
+        """
         if count > len(self.remaining):
             raise ValueError(
                 f"Cannot draw {count} cards, only {len(self.remaining)} remaining"
@@ -70,3 +140,15 @@ class TarotDeck:
             drawn.append(drawn_card)
         
         return drawn
+    
+    def reset(self) -> None:
+        """
+        Return to full 78-card deck in original sorted order (by value_int).
+        
+        **For testing only** - provides predictable card order without
+        randomisation. In production, use shuffle() instead.
+        
+        Physical analogy: Putting cards back in original box order
+        (sorted by suit and value).
+        """
+        self.remaining = self.cards.copy()
