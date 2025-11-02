@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Minimalist tarot reading CLI with optional AI interpretation"
 authors = [{name = "melbourne-quantum-dev", email = "leonardo97@tuta.com"}]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 
 dependencies = [
@@ -38,4 +38,4 @@ addopts = "-v --strict-markers"
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
