@@ -63,10 +63,13 @@ class TarotDeck:
         
         self.cards: List[Card] = []
         with open(data_path, 'r') as f:
-            for line in f:
-                card_data = json.loads(line)
-                card = Card(**card_data)
-                self.cards.append(card)
+            for line_num, line in enumerate(f, 1):
+                try:
+                    card_data = json.loads(line)
+                    card = Card(**card_data)
+                    self.cards.append(card)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON at line {line_num}: {e}") from e
         
         if len(self.cards) != 78:
             raise ValueError(f"Expected 78 cards, found {len(self.cards)}")
