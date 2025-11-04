@@ -5,7 +5,13 @@
 Minimalist tarot reading CLI with optional AI interpretation. 
 Foundation-first architecture: core functionality works reliably without LLM dependency.
 
-**Current Status**: v1.0 development (Milestone 1-4 implementation)
+**Current Status**: v0.3.0 development (Milestone 3 complete, Milestone 4 in progress)
+
+**Completed Milestones:**
+- ✅ Milestone 1 (v0.1.0): Core deck operations
+- ✅ Milestone 2 (v0.2.0): Spread layouts with baseline interpretation
+- ✅ Milestone 3 (v0.3.0): AI integration via Claude API
+- 🚧 Milestone 4: Interactive CLI (in progress)
 
 ## Commands
 
@@ -60,6 +66,17 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 - Integration tests for full reading flow
 - Mock external APIs (LiteLLM) in tests
 
+**Current test status:**
+- `tests/test_deck.py`: 11 tests (95% deck.py coverage)
+- `tests/test_spreads.py`: 10 tests (100% spreads.py coverage)
+- `tests/test_ai.py`: 20 tests (100% ai.py coverage)
+- **Total**: 41/41 tests passing
+
+**Demonstration scripts** (manual validation):
+- `test_deck_basic.py`: Validates deck operations
+- `test_spread_basic.py`: Validates spread layouts
+- `test_ai_basic.py`: Validates AI integration (use `DEBUG_PROMPT=1` to see full prompt)
+
 ## Core Files
 
 - `src/tarotcli/models.py` - Pydantic data models (Card, DrawnCard, Reading, FocusArea)
@@ -69,6 +86,93 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 - `src/tarotcli/ui.py` - Questionary interactive prompts
 - `src/tarotcli/cli.py` - Typer CLI commands
 - `data/tarot_cards_RW.jsonl` - 78-card Rider-Waite dataset
+
+## AI Integration (Milestone 3)
+
+### Architecture
+
+**LiteLLM + Claude API:**
+- Async implementation via `acompletion()` (future-proofed for web API)
+- Sync wrapper `interpret_reading_sync()` for CLI usage
+- Model: `claude-sonnet-4-20250514` (consider adding `anthropic/` prefix)
+
+**Graceful Degradation Pattern:**
+```python
+# Check for API key before attempting call
+if not os.getenv("ANTHROPIC_API_KEY"):
+    return reading.baseline_interpretation
+
+try:
+    response = await acompletion(...)
+    return interpretation
+except asyncio.TimeoutError:
+    return reading.baseline_interpretation  # Never fail
+except Exception:
+    return reading.baseline_interpretation  # Always return valid result
+```
+
+**Key principle**: Readings ALWAYS complete. AI is enhancement, not requirement.
+
+### The Differentiator: Waite Imagery Descriptions
+
+**What makes this authentic vs generic AI tarot:**
+
+The dataset includes A.E. Waite's 1911 imagery descriptions (~1,600 chars per card):
+
+```json
+{
+  "name": "The Magician",
+  "upright_meaning": "Skill, diplomacy, address...",    // ~140 chars
+  "description": "A youthful figure in the robe of a magician, having the
+                  countenance of divine Apollo..."      // ~1,600 chars
+}
+```
+
+**AI prompt includes BOTH**:
+- `description`: Waite's symbolic analysis of card imagery
+- `upright_meaning`/`reversed_meaning`: Traditional interpretation
+
+**Result**: AI synthesizes authoritative 1911 source material, not generic training data.
+
+**Prompt size**: ~4,300 chars for 3-card reading, ~12,000 chars for Celtic Cross (10 cards)
+
+### Focus Area Contexts
+
+AI prompt includes tailored framing for each `FocusArea`:
+- **Career**: Professional development, decision-making guidance
+- **Relationships**: Interpersonal dynamics, emotional connections
+- **Personal Growth**: Self-development, inner work
+- **Spiritual**: Consciousness exploration, higher purpose
+- **General**: Holistic life guidance
+
+### Testing AI Integration
+
+**Unit tests** (100% coverage, no real API calls):
+```bash
+pytest tests/test_ai.py -v                    # 20 tests, all mocked
+pytest tests/test_ai.py --cov=tarotcli.ai     # 100% coverage
+```
+
+**Manual validation** (requires API key):
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+python test_ai_basic.py                       # End-to-end validation
+
+# Debug mode: See actual prompt sent to AI
+DEBUG_PROMPT=1 python test_ai_basic.py
+```
+
+Debug mode shows full 4,300-char prompt including Waite imagery descriptions.
+
+### Error Handling
+
+**All error paths return baseline interpretation:**
+- Missing API key → immediate return (no API attempt)
+- Timeout → catch `asyncio.TimeoutError`
+- API error → catch generic `Exception`
+- None content → explicit check before return
+
+**No exceptions propagate to user** - readings never fail.
 
 ## Testing Workflow
 
