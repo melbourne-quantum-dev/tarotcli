@@ -87,7 +87,7 @@ from tarotcli.ai import interpret_reading_sync
 from pathlib import Path
 
 # Load and shuffle
-deck = TarotDeck(Path("data/tarot_cards_clean.jsonl"))
+deck = TarotDeck(Path("data/tarot_cards_RW.jsonl"))
 deck.shuffle()
 
 # Perform reading
@@ -233,7 +233,7 @@ tarotcli/
 │   ├── ui.py           # Interactive prompts
 │   └── cli.py          # Typer commands
 ├── data/
-│   └── tarot_cards_clean.jsonl
+│   └── tarot_cards_RW.jsonl
 ├── tests/
 │   └── test_*.py
 └── README.md
