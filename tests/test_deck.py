@@ -3,11 +3,6 @@ from pathlib import Path
 from tarotcli.deck import TarotDeck
 from collections import Counter
 
-@pytest.fixture
-def deck_path():
-    """Path to actual dataset."""
-    return Path("data/tarot_cards_RW.jsonl")
-
 
 def test_deck_loads_78_cards(deck_path):
     """Verify deck loads exactly 78 cards from JSONL."""
