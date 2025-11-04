@@ -131,9 +131,11 @@ def _build_interpretation_prompt(reading: Reading) -> str:
     for card in reading.cards:
         orientation = "Reversed" if card.reversed else "Upright"
         meaning = card.effective_meaning
+        imagery = card.card.description
 
         cards_section.append(
             f"**{card.position_meaning}**: {card.card.name} ({orientation})\n"
+            f"Imagery: {imagery}\n"
             f"Traditional Meaning: {meaning}\n"
         )
 
