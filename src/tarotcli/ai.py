@@ -1,7 +1,8 @@
-import os
 import asyncio
+from typing import Optional
 from litellm import acompletion
 from tarotcli.models import Reading, FocusArea
+from tarotcli.config import get_config
 
 # Focus area context templates
 FOCUS_CONTEXTS = {
@@ -33,57 +34,73 @@ FOCUS_CONTEXTS = {
 
 
 async def interpret_reading(
-    reading: Reading, model: str = "claude-sonnet-4-20250514", timeout: int = 30
+    reading: Reading, provider: Optional[str] = None, timeout: int = 30
 ) -> str:
-    """
-    Generate AI interpretation for a reading using Claude API.
+    """Generate AI interpretation of tarot reading with graceful degradation.
 
-    Sends reading context (cards, positions, focus, question) to Claude API
-    and receives synthesized interpretation. Falls back to baseline interpretation
-    if API unavailable or errors occur.
+    Integrates with LiteLLM to support multiple model providers (Claude, Ollama).
+    Configuration-driven: Provider settings (model, temperature, etc.) come from
+    config system, not hardcoded values.
 
-    This function implements graceful degradation: the reading is always usable
-    even without AI enhancement. The LLM adds synthesis and contextual insight
-    but is not required for core functionality.
+    Graceful degradation: ALWAYS returns valid interpretation. On any error
+    (missing API key, timeout, API failure), falls back to reading.baseline_interpretation.
+    This ensures readings never fail.
+
+    Provider resolution: If no provider specified, uses configured default from
+    config.get("models.default_provider"). Allows switching providers by changing
+    one config value.
 
     Args:
-        reading: Complete reading object with drawn cards
-        model: LiteLLM model identifier (default: Claude Sonnet 4)
-        timeout: API request timeout in seconds
+        reading: Complete reading with cards, spread type, focus area.
+        provider: Model provider name (claude, ollama). If None, uses config default.
+        timeout: API call timeout in seconds. Default 30s.
 
     Returns:
-        AI-generated interpretation or baseline if API fails
+        str: AI-generated interpretation or baseline interpretation on error.
+             NEVER raises exceptions - always returns valid text.
 
     Example:
-        >>> reading = spread.create_reading(cards, FocusArea.CAREER)
+        >>> reading = perform_reading(deck, "three_card", FocusArea.CAREER)
+        >>> interpretation = await interpret_reading(reading, provider="claude")
+
+        >>> # With default provider from config
         >>> interpretation = await interpret_reading(reading)
-        >>> reading.interpretation = interpretation
 
-    Note:
-        Requires ANTHROPIC_API_KEY environment variable. If not set,
-        immediately returns baseline interpretation without API call.
-
-    Environmental Requirements:
-        - ANTHROPIC_API_KEY: Anthropic API key for Claude access
-
-    Error Handling:
-        All exceptions caught and logged. Function never raises, ensuring
-        readings always complete successfully (core principle: reliability
-        over feature completeness).
+    Why async:
+        Future-proofed for web API integration. Current CLI usage wraps with
+        interpret_reading_sync(). Over-engineered for v1.0 but architecturally
+        sound for planned web trajectory.
     """
-    # Check for API key before attempting call
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        print("No ANTHROPIC_API_KEY found, using baseline interpretation")
+    config = get_config()
+
+    # Resolve provider to concrete name (handles None → default from config)
+    resolved_provider = (
+        provider
+        if provider is not None
+        else config.get("models.default_provider", "claude")
+    )
+
+    # Get model config (includes model, temperature, max_tokens, api_base)
+    model_config = config.get_model_config(resolved_provider)
+    api_key = config.get_api_key(resolved_provider)
+
+    # Check API key requirement (Ollama doesn't need one, others do)
+    if not api_key and resolved_provider != "ollama":
+        print(
+            f"❌ No API key found for provider '{resolved_provider}', using baseline interpretation"
+        )
         return reading.baseline_interpretation
 
     try:
         prompt = _build_interpretation_prompt(reading)
 
         response = await acompletion(
-            model=model,
+            model=model_config["model"],  # From config
             messages=[{"role": "user", "content": prompt}],
             timeout=timeout,
-            temperature=0.7,  # Balanced creativity/consistency
+            temperature=model_config.get("temperature", 0.7),
+            max_tokens=model_config.get("max_tokens", 2000),  # From config
+            api_base=model_config.get("api_base"),  # From config
             stream=False,  # Disable streaming for synchronous response
         )
 
