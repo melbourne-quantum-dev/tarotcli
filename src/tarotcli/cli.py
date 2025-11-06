@@ -2,11 +2,11 @@
 
 Placeholder until Milestone 4 implementation.
 """
+
 import typer
 
 app = typer.Typer(
-    name="tarotcli",
-    help="Minimalist tarot reading CLI (under development)"
+    name="tarotcli", help="Minimalist tarot reading CLI (under development)"
 )
 
 
