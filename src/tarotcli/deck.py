@@ -112,7 +112,7 @@ class TarotDeck:
         self.cards.sort(key=lambda c: c.value_int)
         self.remaining = self.cards.copy()
 
-    def shuffle(self) -> None:
+    def shuffle(self, seed: int | None = None) -> None:
         """
         Reset to full 78-card deck with randomised order.
 
@@ -124,10 +124,22 @@ class TarotDeck:
         Card orientations (upright/reversed) are determined at draw time,
         not during shuffle.
 
+        Args:
+            seed: Optional random seed for reproducible shuffles. Use for testing
+                  or comparing interpretations with identical card draws. If None,
+                  uses system randomness (default behavior).
+
+        Example:
+            >>> deck.shuffle()        # Random shuffle (normal usage)
+            >>> deck.shuffle(seed=42) # Reproducible shuffle (testing/comparison)
+
         Note:
             Do NOT call shuffle() between draws for the same reading.
             Use reset() only for testing with predictable order.
         """
+        if seed is not None:
+            random.seed(seed)
+
         self.remaining = self.cards.copy()
         random.shuffle(self.remaining)
 
