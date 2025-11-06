@@ -12,6 +12,7 @@ Secrets (API keys) are ONLY stored in environment variables, never in config fil
 import os
 from pathlib import Path
 from typing import Any, Optional, cast
+
 import yaml
 from dotenv import load_dotenv
 
@@ -294,6 +295,7 @@ class Config:
         env_key_map: dict[str, Optional[str]] = {
             "claude": "ANTHROPIC_API_KEY",
             "openai": "OPENAI_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
             "ollama": None,  # Local model, no API key needed
         }
 

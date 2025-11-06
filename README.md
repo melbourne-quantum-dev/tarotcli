@@ -167,17 +167,6 @@ models:
 OPENROUTER_API_KEY=sk-or-v1-...
 ```
 
-Update `src/tarotcli/config.py` to add OpenRouter to the `env_key_map`:
-
-```python
-env_key_map = {
-    "claude": "ANTHROPIC_API_KEY",
-    "openai": "OPENAI_API_KEY",
-    "ollama": None,
-    "openrouter": "OPENROUTER_API_KEY",  # Add this line
-}
-```
-
 **Available via OpenRouter:**
 - Anthropic Claude models
 - OpenAI GPT-4, GPT-4 Turbo
@@ -376,8 +365,8 @@ This implementation uses the **Rider-Waite-Smith** deck, published 1909-1911 by 
 
 **Dataset specifics:**
 
-**Format**: JSONL (line-delimited JSON)  
-**Cards**: 78 complete (22 Major Arcana + 56 Minor Arcana)  
+**Format**: JSONL (line-delimited JSON)
+**Cards**: 78 complete (22 Major Arcana + 56 Minor Arcana)
 **Source**: A.E. Waite's *The Pictorial Key to the Tarot* (1911), via [tarot-api](https://github.com/ekelen/tarot-api)
 
 **Fields per card**:
@@ -452,8 +441,8 @@ tarotcli/
 
 **Previous iteration learned from**:
 
-❌ Complex abstractions without clear benefit (RAG for static card data)  
-❌ Feature dependencies breaking core functionality  
+❌ Complex abstractions without clear benefit (RAG for static card data)
+❌ Feature dependencies breaking core functionality
 ❌ Attempting complex integrations before MVP validation
 
 ---
