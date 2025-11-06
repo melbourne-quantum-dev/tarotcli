@@ -23,6 +23,7 @@ from typing import List
 import json
 import random
 from tarotcli.models import Card, DrawnCard
+from tarotcli.config import get_config
 
 
 class TarotDeck:
@@ -42,7 +43,40 @@ class TarotDeck:
         >>> deck.shuffle()
         >>> drawn = deck.draw(3)  # Draw 3 cards
         >>> print(f"Drew {len(drawn)} cards, {len(deck.remaining)} remain")
+
+        >>> # Or use convenience method with config system:
+        >>> deck = TarotDeck.load_default()
+        >>> deck.shuffle()
     """
+
+    @classmethod
+    def load_default(cls) -> "TarotDeck":
+        """Load deck from default location using config system.
+
+        Convenience factory method that uses config.get_data_path() to locate
+        the standard Rider-Waite deck. Eliminates need for manual path handling
+        in application code.
+
+        Why this pattern:
+            - Config system handles path resolution (dev vs installed)
+            - Users can override via TAROTCLI_DATA_DIR environment variable
+            - Cleaner API: TarotDeck.load_default() vs TarotDeck(Path(...))
+
+        Returns:
+            TarotDeck: Initialized deck ready for shuffling and drawing.
+
+        Raises:
+            FileNotFoundError: If default deck file not found.
+            ValueError: If deck data is invalid.
+
+        Example:
+            >>> deck = TarotDeck.load_default()
+            >>> deck.shuffle()
+            >>> cards = deck.draw(3)
+        """
+        config = get_config()
+        deck_path = config.get_data_path("tarot_cards_RW.jsonl")
+        return cls(deck_path)
 
     def __init__(self, data_path: Path):
         """
