@@ -1,0 +1,29 @@
+# tarotCLI Default Configuration
+# Bundled with package - provides fallback values when no user config exists
+
+models:
+  default_provider: "claude"  # Default to cloud for quality
+  
+  providers:
+    # Anthropic Claude (recommended for quality)
+    claude:
+      model: "claude-sonnet-4-5-20250929"
+      temperature: 0.7
+      max_tokens: 2000
+      # API key from environment: ANTHROPIC_API_KEY
+      
+    # Ollama (local inference - experimental)
+    ollama:
+      model: "deepseek-r1:8b"
+      api_base: "http://localhost:11434"
+      temperature: 0.8
+      max_tokens: 1500
+      # No API key needed for local models
+
+output:
+  format: "markdown"  # Options: markdown, json, plain
+  save_readings: false
+  readings_dir: null  # null = don't save to file
+
+data:
+  deck_path: "tarot_cards_RW.jsonl"  # Relative to data/ directory

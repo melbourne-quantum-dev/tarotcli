@@ -23,46 +23,81 @@ from typing import List
 import json
 import random
 from tarotcli.models import Card, DrawnCard
+from tarotcli.config import get_config
+
 
 class TarotDeck:
     """
     Manages the 78-card Rider-Waite tarot deck.
-    
+
     Handles loading cards from JSONL dataset, shuffling, and drawing with
     randomised orientations (upright/reversed). Maintains state of remaining
     cards in current shuffle.
-    
+
     Attributes:
         cards (List[Card]): Complete 78-card deck
         remaining (List[Card]): Cards not yet drawn in current shuffle
-        
+
     Example:
         >>> deck = TarotDeck(Path("data/tarot_cards_RW.jsonl"))
         >>> deck.shuffle()
         >>> drawn = deck.draw(3)  # Draw 3 cards
         >>> print(f"Drew {len(drawn)} cards, {len(deck.remaining)} remain")
+
+        >>> # Or use convenience method with config system:
+        >>> deck = TarotDeck.load_default()
+        >>> deck.shuffle()
     """
-    
+
+    @classmethod
+    def load_default(cls) -> "TarotDeck":
+        """Load deck from default location using config system.
+
+        Convenience factory method that uses config.get_data_path() to locate
+        the standard Rider-Waite deck. Eliminates need for manual path handling
+        in application code.
+
+        Why this pattern:
+            - Config system handles path resolution (dev vs installed)
+            - Users can override via TAROTCLI_DATA_DIR environment variable
+            - Cleaner API: TarotDeck.load_default() vs TarotDeck(Path(...))
+
+        Returns:
+            TarotDeck: Initialized deck ready for shuffling and drawing.
+
+        Raises:
+            FileNotFoundError: If default deck file not found.
+            ValueError: If deck data is invalid.
+
+        Example:
+            >>> deck = TarotDeck.load_default()
+            >>> deck.shuffle()
+            >>> cards = deck.draw(3)
+        """
+        config = get_config()
+        deck_path = config.get_data_path("tarot_cards_RW.jsonl")
+        return cls(deck_path)
+
     def __init__(self, data_path: Path):
         """
         Initialise deck by loading cards from JSONL file.
-        
+
         Args:
             data_path: Path to tarot_cards_RW.jsonl file
-            
+
         Raises:
             FileNotFoundError: If data_path doesn't exist
             ValueError: If JSONL contains invalid card data
-            
+
         Note:
             Each line in JSONL must be valid JSON matching Card schema.
             File should contain exactly 78 cards (22 major + 56 minor).
         """
         if not data_path.exists():
             raise FileNotFoundError(f"Card data not found at {data_path}")
-        
+
         self.cards: List[Card] = []
-        with open(data_path, 'r') as f:
+        with open(data_path, "r") as f:
             for line_num, line in enumerate(f, 1):
                 try:
                     card_data = json.loads(line)
@@ -70,55 +105,67 @@ class TarotDeck:
                     self.cards.append(card)
                 except json.JSONDecodeError as e:
                     raise ValueError(f"Invalid JSON at line {line_num}: {e}") from e
-        
+
         if len(self.cards) != 78:
             raise ValueError(f"Expected 78 cards, found {len(self.cards)}")
-        
+
         self.cards.sort(key=lambda c: c.value_int)
         self.remaining = self.cards.copy()
-    
-    def shuffle(self) -> None:
+
+    def shuffle(self, seed: int | None = None) -> None:
         """
         Reset to full 78-card deck with randomised order.
-        
+
         **Call this ONCE per reading** (before drawing cards for a spread).
         Calling shuffle() again will reset the deck and invalidate any
         previously drawn cards.
-        
+
         Physical analogy: Thoroughly mixing the deck before starting a reading.
         Card orientations (upright/reversed) are determined at draw time,
         not during shuffle.
-        
+
+        Args:
+            seed: Optional random seed for reproducible shuffles. Use for testing
+                  or comparing interpretations with identical card draws. If None,
+                  uses system randomness (default behavior).
+
+        Example:
+            >>> deck.shuffle()        # Random shuffle (normal usage)
+            >>> deck.shuffle(seed=42) # Reproducible shuffle (testing/comparison)
+
         Note:
             Do NOT call shuffle() between draws for the same reading.
             Use reset() only for testing with predictable order.
         """
+        if seed is not None:
+            random.seed(seed)
+
         self.remaining = self.cards.copy()
         random.shuffle(self.remaining)
 
     def draw(self, count: int) -> List[DrawnCard]:
         """
         Draw specified number of cards with randomised orientations.
-        
+
         Each card has 50% chance of being reversed. Cards are removed from
         remaining deck (no replacement until shuffle() called).
-        
+
         **Orientation determined at draw time**, not during shuffle. This is
         a design choice for simplicity - the end result (50% reversal rate)
         matches physical practice even if the mechanism differs.
-        
+
         Args:
             count: Number of cards to draw
-            
+
         Returns:
             List of DrawnCard objects with card, orientation, and position
-            
+
         Raises:
             ValueError: If count > remaining cards in deck
-            
+
         Physical analogy: Drawing cards from top of shuffled deck and
         placing them in spread positions.
-        
+
         Example:
             >>> deck.shuffle()  # Once per reading
             >>> cards = deck.draw(10)  # Celtic Cross
@@ -129,28 +176,24 @@ class TarotDeck:
             raise ValueError(
                 f"Cannot draw {count} cards, only {len(self.remaining)} remaining"
             )
-        
+
         drawn = []
         for i in range(count):
             card = self.remaining.pop(0)
             is_reversed = random.choice([True, False])
-            
-            drawn_card = DrawnCard(
-                card=card,
-                reversed=is_reversed,
-                position=i
-            )
+
+            drawn_card = DrawnCard(card=card, reversed=is_reversed, position=i)
             drawn.append(drawn_card)
-        
+
         return drawn
-    
+
     def reset(self) -> None:
         """
         Return to full 78-card deck in original sorted order (by value_int).
-        
+
         **For testing only** - provides predictable card order without
         randomisation. In production, use shuffle() instead.
-        
+
         Physical analogy: Putting cards back in original box order
         (sorted by suit and value).
         """

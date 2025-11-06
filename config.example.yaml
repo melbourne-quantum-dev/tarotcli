@@ -1,0 +1,37 @@
+# tarotCLI User Configuration
+# Copy this file to config.yaml and customize your preferences
+# All settings are optional - defaults will be used if not specified
+
+# Model provider selection
+models:
+  default_provider: "claude"  # Options: claude, ollama
+  
+  providers:
+    # Anthropic Claude Configuration
+    # Recommended for highest quality interpretations
+    claude:
+      model: "claude-sonnet-4-5-20250929"
+      temperature: 0.7      # Lower = more focused, Higher = more creative
+      max_tokens: 2000      # Response length limit
+      # Set API key in .env: ANTHROPIC_API_KEY=sk-ant-...
+      
+    # Ollama Configuration (Local Inference)
+    # EXPERIMENTAL: Quality degradation on complex spreads (Celtic Cross)
+    # Requires Ollama installed locally with model pulled
+    ollama:
+      model: "deepseek-r1:8b"  # Or: llama3.1, llama3.2, qwen2.5, etc.
+      api_base: "http://localhost:11434"
+      temperature: 0.8
+      max_tokens: 1500
+      # Install: curl -fsSL https://ollama.com/install.sh | sh
+      # Pull model: ollama pull deepseek-r1:8b
+
+# Output Configuration
+output:
+  format: "markdown"        # Options: markdown, json, plain
+  save_readings: true       # Save readings to file?
+  readings_dir: "~/Documents/tarot_readings"  # Where to save readings
+
+# Advanced: Custom deck path (rarely needed)
+# data:
+#   deck_path: "custom_deck.jsonl"
