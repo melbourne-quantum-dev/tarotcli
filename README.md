@@ -13,12 +13,14 @@
 - Return baseline interpretations from A.E. Waite's *Pictorial Key to the Tarot*
 - Output as formatted text or JSON
 
-**Optional AI Synthesis** (requires `ANTHROPIC_API_KEY`):
-- Claude API interpretation with focus area context (Career, Relationships, Personal Growth, Spiritual, General)
+**Optional AI Synthesis** (configurable providers):
+- **Cloud AI**: Claude via Anthropic API (default) or OpenRouter/other LiteLLM-compatible providers
+- **Local AI**: Ollama for offline inference (deepseek-r1:8b, llama3.1, etc.)
+- Focus area context (Career, Relationships, Personal Growth, Spiritual, General)
 - Considers multiple cards in context to return a cohesive reading
 - **Graceful degradation**: Falls back to baseline if API unavailable
 
-**Architecture principle**: The reading never fails. LLM is pluggable addition, not requirement.
+**Architecture principle**: The reading never fails. LLM is configurable addition, not requirement.
 
 ---
 
@@ -38,10 +40,193 @@ uv pip install -e .
 
 # Or with pip
 pip install -e .
-
-# Optional: Set API key for AI interpretation
-export ANTHROPIC_API_KEY="your-anthropic-key"
 ```
+
+**Next**: See [Configuration](#configuration) for AI provider setup.
+
+---
+
+## Configuration
+
+TarotCLI uses a three-tier configuration system:
+1. **Environment variables** (highest priority) - override any setting
+2. **User config files** - persistent local configuration
+3. **Bundled defaults** - work out of box
+
+### Quick Start: Claude API
+
+Create `.env` file in project root:
+
+```bash
+# .env
+ANTHROPIC_API_KEY=sk-ant-api03-...
+```
+
+That's it! The default configuration uses Claude Sonnet 4.5.
+
+### Quick Start: Local Models (Ollama)
+
+```bash
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull a model (8B parameter model recommended)
+ollama pull deepseek-r1:8b
+
+# Create config.yaml in project root
+cat > config.yaml << 'EOF'
+models:
+  default_provider: "ollama"
+EOF
+
+# Run readings (no API key needed)
+python test_ai_basic.py
+```
+
+### Configuration Files
+
+**Location search priority:**
+1. `./config.yaml` (project root - for development)
+2. `~/.config/tarotcli/config.yaml` (user dotfiles - for installed package)
+3. `src/tarotcli/default.yaml` (bundled defaults - always works)
+
+**Create user config:**
+
+```bash
+# Copy example template
+cp config.example.yaml config.yaml
+
+# Edit with your preferences
+nano config.yaml
+```
+
+### Example Configurations
+
+#### Claude (Default)
+
+```yaml
+# config.yaml
+models:
+  default_provider: "claude"
+
+  providers:
+    claude:
+      model: "claude-sonnet-4-5-20250929"
+      temperature: 0.7
+      max_tokens: 2000
+```
+
+```bash
+# .env
+ANTHROPIC_API_KEY=sk-ant-api03-...
+```
+
+#### Ollama (Local)
+
+```yaml
+# config.yaml
+models:
+  default_provider: "ollama"
+
+  providers:
+    ollama:
+      model: "deepseek-r1:8b"  # or llama3.1, llama3.2, qwen2.5
+      api_base: "http://localhost:11434"
+      temperature: 0.8
+      max_tokens: 1500
+```
+
+No API key needed - runs locally!
+
+**Model recommendations:**
+- **deepseek-r1:8b** - Best quality/speed balance (4.7GB)
+- **llama3.1:8b** - Fast, good quality (4.7GB)
+- **qwen2.5:7b** - Lightweight alternative (4.7GB)
+
+**Note**: Larger models (14B+) provide better quality but require more RAM and are slower.
+
+#### OpenRouter (Multiple Models)
+
+OpenRouter provides access to 200+ models through a single API:
+
+```yaml
+# config.yaml
+models:
+  default_provider: "openrouter"
+
+  providers:
+    openrouter:
+      model: "anthropic/claude-sonnet-4"  # or any OpenRouter model
+      api_base: "https://openrouter.ai/api/v1"
+      temperature: 0.7
+      max_tokens: 2000
+```
+
+```bash
+# .env
+OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+Update `src/tarotcli/config.py` to add OpenRouter to the `env_key_map`:
+
+```python
+env_key_map = {
+    "claude": "ANTHROPIC_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "ollama": None,
+    "openrouter": "OPENROUTER_API_KEY",  # Add this line
+}
+```
+
+**Available via OpenRouter:**
+- Anthropic Claude models
+- OpenAI GPT-4, GPT-4 Turbo
+- Google Gemini Pro
+- Meta Llama models
+- Many others - see [openrouter.ai/docs](https://openrouter.ai/docs)
+
+### Environment Variable Overrides
+
+Override any config value at runtime:
+
+```bash
+# Override provider
+TAROTCLI_MODELS_DEFAULT_PROVIDER=ollama python test_ai_basic.py
+
+# Override temperature
+TAROTCLI_MODELS_PROVIDERS_CLAUDE_TEMPERATURE=0.9 tarotcli read
+
+# Override data location
+TAROTCLI_DATA_DIR=/custom/path tarotcli read
+```
+
+**Format**: `TAROTCLI_` + uppercase path with underscores
+**Example**: `models.providers.claude.temperature` → `TAROTCLI_MODELS_PROVIDERS_CLAUDE_TEMPERATURE`
+
+### Security: API Keys
+
+**API keys are ONLY stored in environment variables, never in config files.**
+
+Three ways to provide API keys:
+
+1. **`.env` file** (recommended for development):
+   ```bash
+   # .env (gitignored)
+   ANTHROPIC_API_KEY=sk-ant-...
+   ```
+
+2. **Shell environment** (for production):
+   ```bash
+   export ANTHROPIC_API_KEY="sk-ant-..."
+   tarotcli read
+   ```
+
+3. **Inline** (for one-off commands):
+   ```bash
+   ANTHROPIC_API_KEY="sk-ant-..." tarotcli read
+   ```
+
+**Never commit `.env` or config files with secrets to version control.**
 
 ---
 
@@ -84,10 +269,9 @@ from tarotcli.deck import TarotDeck
 from tarotcli.spreads import get_spread
 from tarotcli.models import FocusArea
 from tarotcli.ai import interpret_reading_sync
-from pathlib import Path
 
-# Load and shuffle
-deck = TarotDeck(Path("data/tarot_cards_RW.jsonl"))
+# Load and shuffle (uses config system)
+deck = TarotDeck.load_default()
 deck.shuffle()
 
 # Perform reading
@@ -100,7 +284,7 @@ reading = spread.create_reading(
     question="Should I pursue freelance work?"
 )
 
-# Optional: Add AI interpretation
+# Optional: Add AI interpretation (uses configured provider)
 reading.interpretation = interpret_reading_sync(reading)
 
 # Output
@@ -116,7 +300,8 @@ print(reading.model_dump_json(indent=2))
 - **78-card Rider-Waite deck** from verified JSONL dataset
 - **Three spread types**: Single Card, Three Card, Celtic Cross
 - **Interactive CLI**: questionary interface with focus area selection
-- **Optional AI**: Claude API interpretation via LiteLLM
+- **Multiple AI providers**: Claude, Ollama (local), OpenRouter, or any LiteLLM-compatible service
+- **Configuration system**: Three-tier hierarchy with environment overrides
 - **Graceful degradation**: Baseline interpretation always works
 - **Multiple output modes**: Formatted text, JSON
 - **Type safety**: Pydantic models throughout
@@ -127,7 +312,6 @@ print(reading.model_dump_json(indent=2))
 - Reading history persistence
 - Astrological integration ⚠️
 - Golden Dawn correspondences
-- Multiple AI providers
 - RAG/vector search
 - Image generation
 - Voice interface
@@ -162,12 +346,13 @@ Output (formatted text or JSON)
 
 **Tech stack**:
 - **Pydantic** for type-safe data models
-- **LiteLLM** for unified AI client
+- **LiteLLM** for unified AI client (supports 100+ providers)
+- **PyYAML + python-dotenv** for configuration management
 - **Typer** for modern CLI framework
 - **questionary** for interactive prompts
 - **pytest** for comprehensive testing
 
-**Total LOC target**: ~800 including tests (appropriate scope for 2-week MVP)
+**Total LOC**: ~1200 including config system and tests
 
 ---
 
@@ -227,15 +412,19 @@ pytest --cov=tarotcli --cov-report=html
 tarotcli/
 ├── src/tarotcli/
 │   ├── models.py       # Pydantic data models
+│   ├── config.py       # Configuration management
 │   ├── deck.py         # Deck operations
 │   ├── spreads.py      # Spread layouts
-│   ├── ai.py           # Claude API integration
+│   ├── ai.py           # AI integration (LiteLLM)
 │   ├── ui.py           # Interactive prompts
-│   └── cli.py          # Typer commands
+│   ├── cli.py          # Typer commands
+│   └── default.yaml    # Bundled defaults
 ├── data/
 │   └── tarot_cards_RW.jsonl
 ├── tests/
 │   └── test_*.py
+├── config.example.yaml  # User config template
+├── .env.example         # Secrets template
 └── README.md
 ```
 
@@ -254,10 +443,11 @@ tarotcli/
 
 **This version prioritises**:
 
-✓ **Simple data structures** (JSONL file, Pydantic models)  
-✓ **Single AI provider** (LiteLLM abstracts provider changes)  
-✓ **Graceful degradation** (readings work offline)  
-✓ **Minimal feature set** (three spreads, proven functionality)  
+✓ **Simple data structures** (JSONL file, Pydantic models)
+✓ **Pluggable AI providers** (LiteLLM + config system)
+✓ **Graceful degradation** (readings work offline)
+✓ **Configuration over code** (three-tier config hierarchy)
+✓ **Minimal feature set** (three spreads, proven functionality)
 ✓ **Clean git history** (conventional commits, milestone tags)
 
 **Previous iteration learned from**:
@@ -274,6 +464,8 @@ This project demonstrates:
 
 - **Focused implementation**: Appropriate scope definition, working MVP over feature bloat
 - **Foundation-first thinking**: Self-contained core with optional LLM integration
+- **Configuration architecture**: Three-tier hierarchy with environment overrides
+- **Provider flexibility**: Cloud AI, local AI, or baseline-only via config
 - **Type safety**: Pydantic models with comprehensive validation
 - **Error handling**: Graceful degradation when external services fail
 - **Modern Python**: uv, Typer, asyncio, proper packaging
@@ -307,7 +499,7 @@ After v1.0 ships and proves itself in use, may consider feature additions if the
 **Automatic rejection criteria**:
 - Astrological integration (scope creep risk too high)
 - Complex esoteric correspondences (derailment trigger)
-- Features requiring multiple AI providers (unnecessary complexity)
+- Reading history databases (premature feature bloat)
 
 ---
 
@@ -315,5 +507,7 @@ After v1.0 ships and proves itself in use, may consider feature additions if the
 
 - **A.E. Waite** for *The Pictorial Key to the Tarot* (public domain)
 - [tarot-api](https://github.com/ekelen/tarot-api) by ekelen for initial dataset
-- [Claude (Anthropic)](https://claude.ai) for both interpretation API and development assistance
+- [LiteLLM](https://github.com/BerriAI/litellm) for unified AI provider interface
+- [Claude (Anthropic)](https://claude.ai) for interpretation API and development assistance
+- [Ollama](https://ollama.com) for local AI inference capabilities
 - **ADHD** for teaching me about scope creep and self-destructive overactivity the hard way
