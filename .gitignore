@@ -68,6 +68,9 @@ dmypy.json
 .env
 .env.local
 
+# User's config
+config.yaml
+
 # Project specific
 readings.db
 *.jsonl.bak
