@@ -12,7 +12,7 @@ Requirements:
 - Ollama: Local server running (ollama serve) with model pulled
 
 Usage:
-    python test_ai_cloud_vs_local.py
+    python examples/demo_ai_comparison.py
 
 Environment:
     ANTHROPIC_API_KEY=sk-ant-...  # For Claude
@@ -41,7 +41,7 @@ def test_cloud_vs_local_comparison():
     # Claude
     claude_config = config.get_model_config("claude")
     claude_key = config.get_api_key("claude")
-    print(f"\n  [Claude - Cloud]")
+    print("\n  [Claude - Cloud]")
     print(f"    Model: {claude_config.get('model')}")
     print(f"    Temperature: {claude_config.get('temperature')}")
     print(f"    Max tokens: {claude_config.get('max_tokens')}")
@@ -51,7 +51,7 @@ def test_cloud_vs_local_comparison():
 
     # Ollama
     ollama_config = config.get_model_config("ollama")
-    print(f"\n  [Ollama - Local]")
+    print("\n  [Ollama - Local]")
     print(f"    Model: {ollama_config.get('model')}")
     print(f"    API base: {ollama_config.get('api_base')}")
     print(f"    Temperature: {ollama_config.get('temperature')}")

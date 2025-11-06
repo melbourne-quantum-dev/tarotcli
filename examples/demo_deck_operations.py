@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Tarot deck operations: loading, shuffling, and drawing cards.
+"""Demo: Tarot deck operations (loading, shuffling, drawing cards).
 
-Validates Milestone 1 functionality with configuration system:
+Demonstrates Milestone 1 functionality with configuration system:
 - Config-driven deck loading
 - Load 78 cards from JSONL with validation
 - Shuffle deck with proper randomization

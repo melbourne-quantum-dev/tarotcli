@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""AI interpretation demonstration: reading → Claude API → synthesis.
+"""Demo: AI interpretation (reading → LLM API → synthesis).
 
-Validates Milestone 3 functionality with configuration system:
+Demonstrates Milestone 3 functionality with configuration system:
 - Config-driven model provider selection
 - Claude API integration via LiteLLM
 - Waite imagery descriptions in prompt
@@ -11,11 +11,11 @@ Validates Milestone 3 functionality with configuration system:
 Requires: ANTHROPIC_API_KEY in .env file or environment variable
 """
 
-from tarotcli.deck import TarotDeck
-from tarotcli.spreads import get_spread
-from tarotcli.models import FocusArea
 from tarotcli.ai import interpret_reading_sync
 from tarotcli.config import get_config
+from tarotcli.deck import TarotDeck
+from tarotcli.models import FocusArea
+from tarotcli.spreads import get_spread
 
 
 def test_ai_interpretation():
@@ -26,7 +26,7 @@ def test_ai_interpretation():
     provider = config.get("models.default_provider")
     model_config = config.get_model_config()
 
-    print(f"📋 Configuration:")
+    print("📋 Configuration:")
     print(f"   Provider: {provider}")
     print(f"   Model: {model_config.get('model')}")
     print(f"   Temperature: {model_config.get('temperature')}")
@@ -65,7 +65,7 @@ def test_ai_interpretation():
         focus_area=FocusArea.CAREER,
         question="Should I pursue a new job opportunity in the tech industry?",
     )
-    print(f"✅ Generated reading with baseline interpretation")
+    print("✅ Generated reading with baseline interpretation")
 
     # Optional: Show actual prompt sent to AI (debug mode)
     debug_mode = config.get("DEBUG_PROMPT", False) or config.get(

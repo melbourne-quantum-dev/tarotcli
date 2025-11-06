@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Spread layout demonstration: deck → spread → reading → JSON.
+"""Demo: Spread layouts (deck → spread → reading → JSON).
 
-Validates Milestone 2 functionality with configuration system:
+Demonstrates Milestone 2 functionality with configuration system:
 - Config-driven deck loading
 - Spread layouts with position meanings
 - Baseline interpretation generation (no AI)
