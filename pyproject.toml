@@ -1,6 +1,6 @@
 [project]
 name = "tarotcli"
-version = "0.3.0"
+version = "0.3.5"
 description = "Minimalist tarot reading CLI with optional AI interpretation"
 authors = [{name = "melbourne-quantum-dev", email = "leonardo97@tuta.com"}]
 readme = "README.md"
