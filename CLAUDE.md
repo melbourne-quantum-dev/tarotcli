@@ -5,13 +5,13 @@
 Minimalist tarot reading CLI with optional AI interpretation.
 Foundation-first architecture: core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.3.0 development (Milestone 3 complete, Milestone 4 in progress)
+**Current Status**: v0.3.5 development (Milestone 3.5 complete, preparing for Milestone 4)
 
 **Completed Milestones:**
 - ✅ Milestone 1 (v0.1.0): Core deck operations
 - ✅ Milestone 2 (v0.2.0): Spread layouts with baseline interpretation
 - ✅ Milestone 3 (v0.3.0): AI integration via Claude API
-- 🚧 Milestone 3.5 (v0.3.5): Three-tier configuration system (in progress)
+- ✅ Milestone 3.5 (v0.3.5): Three-tier configuration system
 - 🚧 Milestone 4 (v0.4.0): Interactive CLI (pending)
 
 ## Commands
@@ -70,8 +70,9 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 **Current test status:**
 - `tests/test_deck.py`: 11 tests (95% deck.py coverage)
 - `tests/test_spreads.py`: 10 tests (100% spreads.py coverage)
-- `tests/test_ai.py`: 20 tests (100% ai.py coverage)
-- **Total**: 41/41 tests passing
+- `tests/test_config.py`: 33 tests (99% config.py coverage)
+- `tests/test_ai.py`: 20 tests - **5 failing due to config system migration (to be fixed)**
+- **Total**: 69/74 tests passing (93% pass rate)
 
 **Demonstration scripts** (manual validation in `examples/`):
 - `demo_deck_operations.py`: Validates deck operations
@@ -79,7 +80,7 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 - `demo_ai_interpretation.py`: Validates AI integration (use `DEBUG_PROMPT=1` to see full prompt)
 - `demo_ai_comparison.py`: Side-by-side Claude vs Ollama comparison
 
-**Note**: `tests/test_ai.py` needs updating for config system (5 test failures) - deferred to future session.
+**Note**: `tests/test_ai.py` requires config system updates (5 test failures) - see CLAUDE.local.md for fix strategy.
 
 ## Core Files
 
