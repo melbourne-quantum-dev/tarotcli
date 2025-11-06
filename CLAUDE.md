@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Minimalist tarot reading CLI with optional AI interpretation. 
+Minimalist tarot reading CLI with optional AI interpretation.
 Foundation-first architecture: core functionality works reliably without LLM dependency.
 
 **Current Status**: v0.3.0 development (Milestone 3 complete, Milestone 4 in progress)
@@ -11,7 +11,8 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 - ✅ Milestone 1 (v0.1.0): Core deck operations
 - ✅ Milestone 2 (v0.2.0): Spread layouts with baseline interpretation
 - ✅ Milestone 3 (v0.3.0): AI integration via Claude API
-- 🚧 Milestone 4: Interactive CLI (in progress)
+- 🚧 Milestone 3.5 (v0.3.5): Three-tier configuration system (in progress)
+- 🚧 Milestone 4 (v0.4.0): Interactive CLI (pending)
 
 ## Commands
 
@@ -72,34 +73,87 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 - `tests/test_ai.py`: 20 tests (100% ai.py coverage)
 - **Total**: 41/41 tests passing
 
-**Demonstration scripts** (manual validation):
-- `test_deck_basic.py`: Validates deck operations
-- `test_spread_basic.py`: Validates spread layouts
-- `test_ai_basic.py`: Validates AI integration (use `DEBUG_PROMPT=1` to see full prompt)
+**Demonstration scripts** (manual validation in `examples/`):
+- `demo_deck_operations.py`: Validates deck operations
+- `demo_spread_layouts.py`: Validates spread layouts
+- `demo_ai_interpretation.py`: Validates AI integration (use `DEBUG_PROMPT=1` to see full prompt)
+- `demo_ai_comparison.py`: Side-by-side Claude vs Ollama comparison
+
+**Note**: `tests/test_ai.py` needs updating for config system (5 test failures) - deferred to future session.
 
 ## Core Files
 
 - `src/tarotcli/models.py` - Pydantic data models (Card, DrawnCard, Reading, FocusArea)
 - `src/tarotcli/deck.py` - Deck operations (load 78 cards from JSONL, shuffle, draw)
 - `src/tarotcli/spreads.py` - Spread layouts (single, three-card, Celtic Cross)
-- `src/tarotcli/ai.py` - Claude API integration via LiteLLM (graceful degradation)
+- `src/tarotcli/ai.py` - LLM API integration via LiteLLM (graceful degradation)
+- `src/tarotcli/config.py` - **Configuration management system (Milestone 3.5)**
 - `src/tarotcli/ui.py` - Questionary interactive prompts
 - `src/tarotcli/cli.py` - Typer CLI commands
+- `src/tarotcli/default.yaml` - Bundled default configuration
 - `data/tarot_cards_RW.jsonl` - 78-card Rider-Waite dataset
+
+## Configuration System (Milestone 3.5)
+
+**Three-tier configuration hierarchy:**
+
+1. **Environment variables** (highest priority)
+   - `TAROTCLI_*` prefix for config overrides
+   - API keys: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
+   - Example: `TAROTCLI_MODELS_DEFAULT_PROVIDER=ollama`
+
+2. **User config files** (middle priority)
+   - `./config.yaml` (project root - for development)
+   - `~/.config/tarotcli/config.yaml` (XDG standard - for installed package)
+
+3. **Bundled defaults** (fallback)
+   - `src/tarotcli/default.yaml` (versioned with package)
+
+**Usage:**
+```python
+from tarotcli.config import get_config
+
+config = get_config()
+provider = config.get("models.default_provider")  # "claude"
+model_config = config.get_model_config("ollama")  # Full provider config
+api_key = config.get_api_key("claude")  # ANTHROPIC_API_KEY from env
+```
+
+**Supported providers:**
+- `claude`: Anthropic Claude (cloud, requires `ANTHROPIC_API_KEY`)
+- `ollama`: Local inference via Ollama (no API key needed)
+- `openai`: OpenAI (cloud, requires `OPENAI_API_KEY`)
+- `openrouter`: OpenRouter (cloud, requires `OPENROUTER_API_KEY`)
+
+**Example config.yaml:**
+```yaml
+models:
+    default_provider: "ollama"
+    providers:
+        ollama:
+            model: "ollama_chat/deepseek-r1:8b"
+            api_base: "http://localhost:11434"
+            temperature: 0.8
+            max_tokens: 1500
+```
+
+**See:** `config.example.yaml` for complete configuration template.
 
 ## AI Integration (Milestone 3)
 
 ### Architecture
 
-**LiteLLM + Claude API:**
+**LiteLLM + Multi-provider support:**
 - Async implementation via `acompletion()` (future-proofed for web API)
 - Sync wrapper `interpret_reading_sync()` for CLI usage
-- Model: `claude-sonnet-4-20250514` (consider adding `anthropic/` prefix)
+- Configuration-driven: Provider and model selection via config system
+- Supports Claude (cloud), Ollama (local), OpenAI, OpenRouter
 
 **Graceful Degradation Pattern:**
 ```python
-# Check for API key before attempting call
-if not os.getenv("ANTHROPIC_API_KEY"):
+# Check for API key before attempting call (config-driven)
+api_key = config.get_api_key(provider)
+if not api_key and provider != "ollama":
     return reading.baseline_interpretation
 
 try:
@@ -156,10 +210,13 @@ pytest tests/test_ai.py --cov=tarotcli.ai     # 100% coverage
 **Manual validation** (requires API key):
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
-python test_ai_basic.py                       # End-to-end validation
+python examples/demo_ai_interpretation.py     # End-to-end validation
 
 # Debug mode: See actual prompt sent to AI
-DEBUG_PROMPT=1 python test_ai_basic.py
+DEBUG_PROMPT=1 python examples/demo_ai_interpretation.py
+
+# Compare Claude vs Ollama with identical reading
+python examples/demo_ai_comparison.py
 ```
 
 Debug mode shows full 4,300-char prompt including Waite imagery descriptions.
@@ -204,10 +261,10 @@ Debug mode shows full 4,300-char prompt including Waite imagery descriptions.
 ## Repository Structure
 
 ```
-src/tarotcli/ # Package source 
-tests/ # Test suite 
-data/ # Dataset (read-only) 
-docs/private/ # Personal docs (gitignored, symlinked to Obsidian) 
+src/tarotcli/ # Package source
+tests/ # Test suite
+data/ # Dataset (read-only)
+docs/private/ # Personal docs (gitignored, symlinked to Obsidian)
 examples/ # Usage examples
 ```
 
