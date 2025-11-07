@@ -19,7 +19,7 @@ models:
     # EXPERIMENTAL: Quality degradation on complex spreads (Celtic Cross)
     # Requires Ollama installed locally with model pulled
     ollama:
-      model: "deepseek-r1:8b"  # Or: llama3.1, llama3.2, qwen2.5, etc.
+      model: "ollama_chat/deepseek-r1:8b"  # Or: ollama_chat/llama3.1, ollama_chat/llama3.2, ollama_chat/qwen2.5, etc.
       api_base: "http://localhost:11434"
       temperature: 0.8
       max_tokens: 1500

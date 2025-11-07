@@ -77,10 +77,18 @@ ollama pull deepseek-r1:8b
 cat > config.yaml << 'EOF'
 models:
   default_provider: "ollama"
+  providers:
+    ollama:
+      model: "ollama_chat/deepseek-r1:8b"  # Or: ollama_chat/llama3.1, ollama_chat/llama3.2, ollama_chat/qwen2.5, etc.
+      api_base: "http://localhost:11434"
+      temperature: 0.8
+      max_tokens: 1500
+# Installation: curl -fsSL https://ollama.com/install.sh | sh
+# Pull model: ollama pull deepseek-r1:8b
 EOF
 
 # Run readings (no API key needed)
-python test_ai_basic.py
+python examples/demo_ai_interpretation.py
 ```
 
 ### Configuration Files
@@ -130,7 +138,7 @@ models:
 
   providers:
     ollama:
-      model: "deepseek-r1:8b"  # or llama3.1, llama3.2, qwen2.5
+      model: "ollama_chat/deepseek-r1:8b"  # Or: ollama_chat/llama3.1, ollama_chat/llama3.2, ollama_chat/qwen2.5
       api_base: "http://localhost:11434"
       temperature: 0.8
       max_tokens: 1500
