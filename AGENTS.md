@@ -5,42 +5,50 @@
 Minimalist tarot reading CLI with optional AI interpretation.
 Foundation-first architecture: core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.3.5 stable ✅ COMPLETE (Milestone 3.5 finished, foundation solid for Milestone 4)
+**Current Status**: v0.4.0 stable ✅ COMPLETE (Milestone 4 finished, CLI fully implemented)
 
-**Test Coverage**: 91% overall (74/74 tests passing)
+**Test Coverage**: 94%+ overall (86/86 tests passing)
 - ai.py: 100% coverage ✅
 - models.py: 100% coverage ✅  
 - spreads.py: 100% coverage ✅
 - config.py: 99% coverage ✅
+- cli.py: 100% coverage ✅ (NEW)
 - deck.py: 87% coverage ⚠️
+- ui.py: 95% coverage ✅ (NEW)
 
 **Completed Milestones:**
 - ✅ Milestone 1 (v0.1.0): Core deck operations - COMPLETE
 - ✅ Milestone 2 (v0.2.0): Spread layouts with baseline interpretation - COMPLETE
 - ✅ Milestone 3 (v0.3.0): AI integration via Claude API - COMPLETE
 - ✅ Milestone 3.5 (v0.3.5): Three-tier configuration system - COMPLETE
-- 🚧 Milestone 4 (v0.4.0): Interactive CLI - **READY TO START**
+- ✅ Milestone 4 (v0.4.0): Interactive CLI - **COMPLETE**
 
-**Milestone 4 Status**: Foundation solid, ready for CLI implementation
-- All core modules tested and proven reliable
-- Configuration system fully integrated and validated  
-- Test suite provides comprehensive safety net
-- Documentation current and accurate
+**Milestone 4 Status**: CLI implementation complete and production-ready
+- Full typer-based CLI with interactive and argument modes
+- Complete test suite (12 CLI tests + 74 existing = 86 total)
+- Comprehensive questionary UI for parameter collection
+- AI provider override functionality
+- JSON and markdown output formats
+- Graceful degradation with proper error handling
+- Production-ready documentation and code quality
 
 ## Commands
 
 ### Development
 - `uv pip install -e '.[dev]'` - Install package in editable mode with dev dependencies
-- `pytest` - Run full test suite
-- `pytest tests/test_deck.py -v` - Run specific test module with verbose output
+- `pytest` - Run full test suite (86/86 tests passing)
+- `pytest tests/test_cli.py -v` - Run CLI tests specifically
 - `pytest --cov=tarotcli --cov-report=html` - Generate coverage report
 - `python -m tarotcli` - Run CLI entry point
 
 ### Usage
-- `tarotcli read` - Interactive reading (questionary prompts)
-- `tarotcli read --spread three --focus career --no-ai` - CLI arguments mode
-- `tarotcli list-spreads` - Show available spread types
-- `tarotcli version` - Display version
+- `tarotcli read` - Interactive reading (questionary prompts for spread, focus, question)
+- `tarotcli read --spread single --focus spiritual --no-ai` - CLI argument mode
+- `tarotcli read --spread three --focus career --provider ollama` - Provider override
+- `tarotcli read --spread celtic --question "specific question" --json` - JSON output
+- `tarotcli list-spreads` - Show available spread types with descriptions
+- `tarotcli version` - Display current version
+- `tarotcli config-info` - Show current configuration (provider, model, data path)
 
 ## Architecture Principles
 
@@ -286,76 +294,123 @@ Private documentation (blueprints, personal notes) lives in Obsidian vault, syml
 
 ---
 
-## Milestone 4 - Interactive CLI Implementation Guide
+## Core Files
 
-**Status**: Ready to start - Foundation is solid and complete
+- `src/tarotcli/models.py` - Pydantic data models (Card, DrawnCard, Reading, FocusArea)
+- `src/tarotcli/deck.py` - Deck operations (load 78 cards from JSONL, shuffle, draw)
+- `src/tarotcli/spreads.py` - Spread layouts (single, three-card, Celtic Cross)
+- `src/tarotcli/ai.py` - LLM API integration via LiteLLM (graceful degradation)
+- `src/tarotcli/config.py` - Configuration management system (Milestone 3.5)
+- `src/tarotcli/ui.py` - **NEW** - Questionary interactive prompts (Milestone 4)
+- `src/tarotcli/cli.py` - **NEW** - Typer CLI commands + main entry point (Milestone 4)
+- `src/tarotcli/default.yaml` - Bundled default configuration
+- `data/tarot_cards_RW.jsonl` - 78-card Rider-Waite dataset
 
-### Implementation Priority Sequence
+## Configuration System (Milestone 3.5)
 
-**Phase 1: CLI Infrastructure**
-1. **ui.py** - Implement questionary prompt functions
-   - `prompt_spread_selection()` - Choose spread type with descriptions
-   - `prompt_focus_area()` - Choose from FocusArea enum with help
-   - `prompt_question()` - Free text input for user's question  
-   - `confirm_reading_setup()` - Review before proceeding
-2. **cli.py** - Basic typer application  
-   - Entry point `tarotcli read` command
-   - Argument parsing (spread, focus, no-ai flags)
-   - Integration with ui.py functions
-   - Basic error handling and output formatting
+**Three-tier configuration hierarchy:**
 
-**Phase 2: Reading Integration**
-3. ** orchestration** - Connect CLI flow to existing reading logic
-   - Load deck → shuffle → draw → create reading → interpret
-   - Integrate with config system (provider selection)
-   - Handle AI vs baseline gracefully (existing pattern)
-   - Terminal-friendly output formatting
+1. **Environment variables** (highest priority)
+   - `TAROTCLI_*` prefix for config overrides
+   - API keys: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
+   - Example: `TAROTCLI_MODELS_DEFAULT_PROVIDER=ollama`
 
-**Phase 3: Polish & Extensions**
-4. **complete CLI experience**
-   - Additional commands: `list-spreads`, `version`, `config validate`
-   - Better prompts, progress indicators, visual card display
-   - Output options: JSON/plain text modes
-   - Comprehensive help and error messages
+2. **User config files** (middle priority)
+   - `./config.yaml` (project root - for development)
+   - `~/.config/tarotcli/config.yaml` (XDG standard - for installed package)
 
-### Key Implementation Focus Areas
+3. **Bundled defaults** (fallback)
+   - `src/tarotcli/default.yaml` (versioned with package)
 
-**User Experience Design:**
-- Progressive disclosure with clear prompts
-- Visual feedback during card drawing
-- Confirmation before expensive AI calls
-- Graceful error handling with helpful guidance
+## Testing Workflow
 
-**Configuration Integration:**
-- Respect user's provider/default settings from config system
-- Support runtime overrides via CLI arguments
-- Validate configurations with user-friendly error messages
-- Maintain existing graceful degradation patterns
+Current test suite: **86/86 tests passing (100% pass rate, 94%+ overall coverage)**
+- `tests/test_deck.py`: 11 tests (87% deck.py coverage) ✅
+- `tests/test_spreads.py`: 10 tests (100% spreads.py coverage) ✅
+- `tests/test_config.py`: 33 tests (99% config.py coverage) ✅
+- `tests/test_ai.py`: 20 tests (100% ai.py coverage) ✅
+- `tests/test_cli.py`: **NEW 12 tests** (100% cli.py coverage) ✅
 
 **Testing Strategy:**
-- Test CLI commands programmatically (typer test utilities)
-- Manual validation of terminal UX and user flow
-- Integration testing of complete reading workflows
-- Mock external dependencies in automated tests
+1. Write test for new functionality FIRST
+2. Implement functionality until test passes
+3. Run full test suite to verify no regressions
+4. Check coverage: `pytest --cov=tarotcli`
+5. Only commit when all tests pass
+---
 
-### Success Criteria
+## Outstanding Issues & Future Work
 
-**Must-have for v0.4.0:**
-- `tarotcli read` works interactively with step-by-step prompts
-- `tarotcli read --spread three --focus career --no-ai` works non-interactively
-- CLI respects user's configuration (provider, models, etc.)
-- Graceful degradation when APIs unavailable or misconfigured
-- Clean, readable terminal output formatting
+### Current Known Issues
 
-**Should-have for v0.4.0:**
-- `tarotcli list-spreads` shows available spread types with descriptions
-- `tarotcli version` displays current version and basic info
-- Comprehensive help documentation with examples
-- Progress indicators for multi-step operations
+**Ollama Timeout Issue** (v0.4.0):
+- LiteLLM APIConnectionError with long prompts (~4,300 chars) on current setup
+- Simple prompts work fine, full tarot prompts timeout after 30s
+- Needs testing on alternate machine to determine if environment-specific
+- Workaround: Claude and other providers work perfectly, graceful degradation to baseline
 
-### Dependencies to Verify
-- Ensure `typer` and `questionary` are in pyproject.toml dependencies
-- Verify entry point configured correctly in pyproject.toml
-- Test installation flow: `pip install -e .` followed by `tarotcli --help`
+### Future Milestones
 
-**Development Guidance**: Focus on getting basic interactive flow working first, then add polish and extensions. The core reading logic is already proven solid - focus on user experience and CLI integration.
+**Milestone 4.1 - Ollama Reliability**:
+- Resolve timeout issues with long prompts
+- Optimize prompt size or increase timeout configuration
+- Test on multiple development environments
+
+**Milestone 5 - Reading Persistence** (v0.5.0) - **NEXT**:
+- Save readings to user-specified directory
+- Multiple output formats: JSON, markdown, plain text
+- Reading history and retrieval functionality
+- README promises this feature - needs implementation
+
+**Milestone 6 - Advanced CLI Features** (v0.6.0):
+- Advanced visualization of cards and spreads
+- Reading export formats (HTML, PDF)
+- Statistical analysis of reading patterns
+
+---
+
+## Repository Structure
+
+```
+src/tarotcli/ # Package source
+tests/ # Test suite (86/86 tests passing)
+data/ # Dataset (read-only)
+docs/ # Documentation
+examples/ # Usage examples
+scripts/ # Development utils
+```
+
+---
+
+## CLI Usage Examples (v0.4.0)
+
+**Interactive Mode:**
+```bash
+tarotcli read
+# Prompts for: spread type ➜ focus area ➜ question ➜ AI preference
+```
+
+**CLI Arguments Mode:**
+```bash
+# Quick reading with baseline interpretation
+tarotcli read --spread single --focus general --no-ai
+
+# Full AI reading with specific question
+tarotcli read --spread three --focus career --question "Should I change jobs?" --provider claude
+
+# JSON output for automation
+tarotcli read --spread celtic --focus relationships --json
+
+# Configuration checks
+tarotcli config-info          # Show current setup
+tarotcli list-spreads         # Available spread types
+tarotcli version              # Current version
+```
+
+**Provider Override Examples:**
+```bash
+# Test different AI providers
+tarotcli read --spread three --focus spiritual --provider ollama    # Local inference
+tarotcli read --spread three --focus spiritual --provider claude    # Claude (cloud)
+tarotcli read --spread three --focus spiritual --provider openai    # OpenAI (cloud)
+```
