@@ -32,8 +32,9 @@ private
 *-blueprint.md
 *-session-*.md
 
-# Personal Claude Code context
+# Personal agent context
 CLAUDE.local.md
+AGENTS.local.md
 
 # Virtual environments
 venv/
