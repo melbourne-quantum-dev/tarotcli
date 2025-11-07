@@ -5,21 +5,27 @@
 Minimalist tarot reading CLI with optional AI interpretation.
 Foundation-first architecture: core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.3.5 stable (Milestone 3.5 complete, all tests passing, ready for Milestone 4)
+**Current Status**: v0.3.5 stable ✅ COMPLETE (Milestone 3.5 finished, foundation solid for Milestone 4)
 
 **Test Coverage**: 91% overall (74/74 tests passing)
-- ai.py: 100% coverage
-- models.py: 100% coverage  
-- spreads.py: 100% coverage
-- config.py: 99% coverage
-- deck.py: 87% coverage
+- ai.py: 100% coverage ✅
+- models.py: 100% coverage ✅  
+- spreads.py: 100% coverage ✅
+- config.py: 99% coverage ✅
+- deck.py: 87% coverage ⚠️
 
 **Completed Milestones:**
-- ✅ Milestone 1 (v0.1.0): Core deck operations
-- ✅ Milestone 2 (v0.2.0): Spread layouts with baseline interpretation
-- ✅ Milestone 3 (v0.3.0): AI integration via Claude API
-- ✅ Milestone 3.5 (v0.3.5): Three-tier configuration system
-- 🚧 Milestone 4 (v0.4.0): Interactive CLI (pending)
+- ✅ Milestone 1 (v0.1.0): Core deck operations - COMPLETE
+- ✅ Milestone 2 (v0.2.0): Spread layouts with baseline interpretation - COMPLETE
+- ✅ Milestone 3 (v0.3.0): AI integration via Claude API - COMPLETE
+- ✅ Milestone 3.5 (v0.3.5): Three-tier configuration system - COMPLETE
+- 🚧 Milestone 4 (v0.4.0): Interactive CLI - **READY TO START**
+
+**Milestone 4 Status**: Foundation solid, ready for CLI implementation
+- All core modules tested and proven reliable
+- Configuration system fully integrated and validated  
+- Test suite provides comprehensive safety net
+- Documentation current and accurate
 
 ## Commands
 
@@ -277,3 +283,79 @@ examples/ # Usage examples
 ```
 
 Private documentation (blueprints, personal notes) lives in Obsidian vault, symlinked to `docs/private/tarotCLI/`.
+
+---
+
+## Milestone 4 - Interactive CLI Implementation Guide
+
+**Status**: Ready to start - Foundation is solid and complete
+
+### Implementation Priority Sequence
+
+**Phase 1: CLI Infrastructure**
+1. **ui.py** - Implement questionary prompt functions
+   - `prompt_spread_selection()` - Choose spread type with descriptions
+   - `prompt_focus_area()` - Choose from FocusArea enum with help
+   - `prompt_question()` - Free text input for user's question  
+   - `confirm_reading_setup()` - Review before proceeding
+2. **cli.py** - Basic typer application  
+   - Entry point `tarotcli read` command
+   - Argument parsing (spread, focus, no-ai flags)
+   - Integration with ui.py functions
+   - Basic error handling and output formatting
+
+**Phase 2: Reading Integration**
+3. ** orchestration** - Connect CLI flow to existing reading logic
+   - Load deck → shuffle → draw → create reading → interpret
+   - Integrate with config system (provider selection)
+   - Handle AI vs baseline gracefully (existing pattern)
+   - Terminal-friendly output formatting
+
+**Phase 3: Polish & Extensions**
+4. **complete CLI experience**
+   - Additional commands: `list-spreads`, `version`, `config validate`
+   - Better prompts, progress indicators, visual card display
+   - Output options: JSON/plain text modes
+   - Comprehensive help and error messages
+
+### Key Implementation Focus Areas
+
+**User Experience Design:**
+- Progressive disclosure with clear prompts
+- Visual feedback during card drawing
+- Confirmation before expensive AI calls
+- Graceful error handling with helpful guidance
+
+**Configuration Integration:**
+- Respect user's provider/default settings from config system
+- Support runtime overrides via CLI arguments
+- Validate configurations with user-friendly error messages
+- Maintain existing graceful degradation patterns
+
+**Testing Strategy:**
+- Test CLI commands programmatically (typer test utilities)
+- Manual validation of terminal UX and user flow
+- Integration testing of complete reading workflows
+- Mock external dependencies in automated tests
+
+### Success Criteria
+
+**Must-have for v0.4.0:**
+- `tarotcli read` works interactively with step-by-step prompts
+- `tarotcli read --spread three --focus career --no-ai` works non-interactively
+- CLI respects user's configuration (provider, models, etc.)
+- Graceful degradation when APIs unavailable or misconfigured
+- Clean, readable terminal output formatting
+
+**Should-have for v0.4.0:**
+- `tarotcli list-spreads` shows available spread types with descriptions
+- `tarotcli version` displays current version and basic info
+- Comprehensive help documentation with examples
+- Progress indicators for multi-step operations
+
+### Dependencies to Verify
+- Ensure `typer` and `questionary` are in pyproject.toml dependencies
+- Verify entry point configured correctly in pyproject.toml
+- Test installation flow: `pip install -e .` followed by `tarotcli --help`
+
+**Development Guidance**: Focus on getting basic interactive flow working first, then add polish and extensions. The core reading logic is already proven solid - focus on user experience and CLI integration.
