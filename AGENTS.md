@@ -2,178 +2,89 @@
 
 ## Project Overview
 
-Minimalist tarot reading CLI with optional AI interpretation.
-Foundation-first architecture: core functionality works reliably without LLM dependency.
+**Purpose**: Minimalist tarot reading CLI with optional AI interpretation. Foundation-first architecture ensuring core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.4.0 stable ✅ COMPLETE (Milestone 4 finished, CLI fully implemented)
+**Current Status**: v0.4.0 (Milestone 4 Complete)
+- **Test Coverage**: 94% overall (86/86 tests passing)
+- **Production Ready**: CLI fully functional with interactive and argument modes
+- **Multi-Provider Support**: Claude, Ollama (local), OpenAI, OpenRouter
 
-**Test Coverage**: 94%+ overall (86/86 tests passing)
-- ai.py: 100% coverage ✅
-- models.py: 100% coverage ✅  
-- spreads.py: 100% coverage ✅
-- config.py: 99% coverage ✅
-- cli.py: 100% coverage ✅ (NEW)
-- deck.py: 87% coverage ⚠️
-- ui.py: 95% coverage ✅ (NEW)
+**Key Achievement**: Professional Python CLI demonstrating scope discipline, test-driven development, and graceful degradation patterns. Portfolio piece showcasing ability to ship working MVP without overengineering.
 
-**Completed Milestones:**
-- ✅ Milestone 1 (v0.1.0): Core deck operations - COMPLETE
-- ✅ Milestone 2 (v0.2.0): Spread layouts with baseline interpretation - COMPLETE
-- ✅ Milestone 3 (v0.3.0): AI integration via Claude API - COMPLETE
-- ✅ Milestone 3.5 (v0.3.5): Three-tier configuration system - COMPLETE
-- ✅ Milestone 4 (v0.4.0): Interactive CLI - **COMPLETE**
+---
 
-**Milestone 4 Status**: CLI implementation complete and production-ready
-- Full typer-based CLI with interactive and argument modes
-- Complete test suite (12 CLI tests + 74 existing = 86 total)
-- Comprehensive questionary UI for parameter collection
-- AI provider override functionality
+## Project Scope
+
+### In Scope (Current Implementation)
+
+**Core Functionality**:
+- 78-card Rider-Waite-Smith deck with authoritative 1911 Waite imagery descriptions
+- Three spread types: Single Card, Three Card (Past/Present/Future), Celtic Cross (10 cards)
+- Multi-provider AI interpretation (Claude, Ollama, OpenAI, OpenRouter)
+- Baseline interpretation (static card meanings, works offline)
+- Interactive CLI (questionary prompts) and argument mode
+- Three-tier configuration (environment → user config → bundled defaults)
 - JSON and markdown output formats
-- Graceful degradation with proper error handling
-- Production-ready documentation and code quality
+- Graceful degradation (readings never fail)
 
-## Commands
+**Development Standards**:
+- Foundation-first methodology (each milestone proven before next)
+- Comprehensive test coverage (target >90%)
+- Google-style docstrings throughout
+- Conventional commits and milestone tagging
+- Type safety with Pydantic models
 
-### Development
-- `uv pip install -e '.[dev]'` - Install package in editable mode with dev dependencies
-- `pytest` - Run full test suite (86/86 tests passing)
-- `pytest tests/test_cli.py -v` - Run CLI tests specifically
-- `pytest --cov=tarotcli --cov-report=html` - Generate coverage report
-- `python -m tarotcli` - Run CLI entry point
+### Out of Scope (Explicitly Excluded)
 
-### Usage
-- `tarotcli read` - Interactive reading (questionary prompts for spread, focus, question)
-- `tarotcli read --spread single --focus spiritual --no-ai` - CLI argument mode
-- `tarotcli read --spread three --focus career --provider ollama` - Provider override
-- `tarotcli read --spread celtic --question "specific question" --json` - JSON output
-- `tarotcli list-spreads` - Show available spread types with descriptions
-- `tarotcli version` - Display current version
-- `tarotcli config-info` - Show current configuration (provider, model, data path)
+**Features NOT being added**:
+- Reading history persistence/retrieval (database, search, filtering)
+- Statistical analysis or pattern recognition
+- Multiple tarot decks (Thoth, Marseille, etc.)
+- Astrological integration
+- Golden Dawn correspondences
+- Image generation or visualization
+- Web UI or API server
+- Voice interface
+- RAG/vector search/embeddings
 
-## Architecture Principles
+**Rationale**: Previous version (371 commits) abandoned due to scope creep. Current version demonstrates ability to ship working MVP and maintain focus.
 
-**Foundation-First Development:**
-- Each milestone must work perfectly before moving to next
-- Baseline functionality never depends on LLM availability
-- Graceful degradation: readings always complete successfully
+### Future Minimal Additions (Post v1.0)
 
-**Milestone Progression:**
+**Milestone 5 - Reading Export** (v0.5.0):
+- Save readings to configurable directory
+- Timestamped filenames (e.g., `reading_2025-11-07_14-30-22.md`)
+- Markdown and JSON formats
+- **NOT a database** - simple file export only
+- No retrieval, search, or history management
+
+**Card Imagery Toggle** (v0.6.0):
+- CLI flag: `--show-imagery` to include Waite's 1911 descriptions in output
+- User sees both symbolic imagery analysis AND traditional meanings
+- Helps users understand how AI synthesizes card interpretations
+- Preserves minimalist default (effective meanings only)
+
+---
+
+## Architecture & Principles
+
+### Foundation-First Development
+
+**Methodology**:
 1. Core deck operations (load, shuffle, draw) - NO LLM dependency
-2. Spread layouts with baseline interpretation
-3. AI integration with graceful degradation
-4. Interactive CLI polish
+2. Spread layouts with baseline interpretation (works offline)
+3. AI integration with graceful degradation (enhancement, not requirement)
+4. Interactive CLI polish (UX layer on proven foundation)
 
-**YOU MUST NOT add features from later milestones before current milestone is complete and tested.**
+**Critical Rule**: Each milestone must work perfectly before proceeding to next. No feature additions from future milestones until current milestone complete and tested.
 
-## Code Style
+### Graceful Degradation Pattern
 
-### Type Safety
-- Use Pydantic v2 models for all data structures
-- Include type hints on all function signatures
-- Use `str | None` syntax (not `Optional[str]`)
+**Philosophy**: Readings ALWAYS complete successfully. AI interpretation is enhancement, not requirement.
 
-### Docstrings
-- Google-style docstrings for all public functions
-- Include Args, Returns, Raises, Example sections
-- Explain WHY (architectural decisions), not just WHAT
-
-### Error Handling
-- All functions that could fail must handle errors gracefully
-- LLM functions return baseline on any error (never raise)
-- Use descriptive error messages with context
-
-### Testing
-- Test coverage target: >90%
-- Unit tests for each module independently
-- Integration tests for full reading flow
-- Mock external APIs (LiteLLM) in tests
-
-**Current test status:**
-- `tests/test_deck.py`: 11 tests (87% deck.py coverage)
-- `tests/test_spreads.py`: 10 tests (100% spreads.py coverage)
-- `tests/test_config.py`: 33 tests (99% config.py coverage)
-- `tests/test_ai.py`: 20 tests (100% ai.py coverage)
-- **Total**: 74/74 tests passing (100% pass rate, 91% overall coverage)
-
-**Demonstration scripts** (manual validation in `examples/`):
-- `demo_deck_operations.py`: Validates deck operations
-- `demo_spread_layouts.py`: Validates spread layouts
-- `demo_ai_interpretation.py`: Validates AI integration (use `DEBUG_PROMPT=1` to see full prompt)
-- `demo_ai_comparison.py`: Side-by-side Claude vs Ollama comparison
-
-**Note**: All tests now pass with proper config system integration and test isolation from user config files.
-
-## Core Files
-
-- `src/tarotcli/models.py` - Pydantic data models (Card, DrawnCard, Reading, FocusArea)
-- `src/tarotcli/deck.py` - Deck operations (load 78 cards from JSONL, shuffle, draw)
-- `src/tarotcli/spreads.py` - Spread layouts (single, three-card, Celtic Cross)
-- `src/tarotcli/ai.py` - LLM API integration via LiteLLM (graceful degradation)
-- `src/tarotcli/config.py` - **Configuration management system (Milestone 3.5)**
-- `src/tarotcli/ui.py` - Questionary interactive prompts
-- `src/tarotcli/cli.py` - Typer CLI commands
-- `src/tarotcli/default.yaml` - Bundled default configuration
-- `data/tarot_cards_RW.jsonl` - 78-card Rider-Waite dataset
-
-## Configuration System (Milestone 3.5)
-
-**Three-tier configuration hierarchy:**
-
-1. **Environment variables** (highest priority)
-   - `TAROTCLI_*` prefix for config overrides
-   - API keys: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
-   - Example: `TAROTCLI_MODELS_DEFAULT_PROVIDER=ollama`
-
-2. **User config files** (middle priority)
-   - `./config.yaml` (project root - for development)
-   - `~/.config/tarotcli/config.yaml` (XDG standard - for installed package)
-
-3. **Bundled defaults** (fallback)
-   - `src/tarotcli/default.yaml` (versioned with package)
-
-**Usage:**
+**Implementation**:
 ```python
-from tarotcli.config import get_config
-
-config = get_config()
-provider = config.get("models.default_provider")  # "claude"
-model_config = config.get_model_config("ollama")  # Full provider config
-api_key = config.get_api_key("claude")  # ANTHROPIC_API_KEY from env
-```
-
-**Supported providers:**
-- `claude`: Anthropic Claude (cloud, requires `ANTHROPIC_API_KEY`)
-- `ollama`: Local inference via Ollama (no API key needed)
-- `openai`: OpenAI (cloud, requires `OPENAI_API_KEY`)
-- `openrouter`: OpenRouter (cloud, requires `OPENROUTER_API_KEY`)
-
-**Example config.yaml:**
-```yaml
-models:
-    default_provider: "ollama"
-    providers:
-        ollama:
-            model: "ollama_chat/deepseek-r1:8b"
-            api_base: "http://localhost:11434"
-            temperature: 0.8
-            max_tokens: 1500
-```
-
-**See:** `config.example.yaml` for complete configuration template.
-
-## AI Integration (Milestone 3)
-
-### Architecture
-
-**LiteLLM + Multi-provider support:**
-- Async implementation via `acompletion()` (future-proofed for web API)
-- Sync wrapper `interpret_reading_sync()` for CLI usage
-- Configuration-driven: Provider and model selection via config system
-- Supports Claude (cloud), Ollama (local), OpenAI, OpenRouter
-
-**Graceful Degradation Pattern:**
-```python
-# Check for API key before attempting call (config-driven)
+# Check preconditions before attempting API call
 api_key = config.get_api_key(provider)
 if not api_key and provider != "ollama":
     return reading.baseline_interpretation
@@ -187,230 +98,637 @@ except Exception:
     return reading.baseline_interpretation  # Always return valid result
 ```
 
-**Key principle**: Readings ALWAYS complete. AI is enhancement, not requirement.
+**No exceptions propagate to user** - all error paths return valid baseline interpretation.
+
+---
+
+## Core Components
+
+### Module Responsibilities
+
+**src/tarotcli/models.py** (100% coverage):
+- Pydantic data models: `Card`, `DrawnCard`, `Reading`, `FocusArea`
+- Type-safe data structures with validation
+- JSON serialization for output formats
+
+**src/tarotcli/deck.py** (87% coverage):
+- Load 78 cards from JSONL dataset
+- Shuffle with optional seed (reproducible testing)
+- Draw N cards without replacement
+- Static method `load_default()` uses config system
+
+**src/tarotcli/spreads.py** (100% coverage):
+- Spread layout definitions (single, three, celtic)
+- Position meaning assignment
+- Baseline interpretation generation from card meanings
+- Registry pattern: `get_spread(name)` factory function
+
+**src/tarotcli/ai.py** (100% coverage):
+- LiteLLM integration (async implementation)
+- Multi-provider support (Claude, Ollama, OpenAI, OpenRouter)
+- Waite imagery descriptions in prompts (~4,300 chars for 3-card reading)
+- Focus area contexts (career, relationships, personal growth, spiritual, general)
+- Graceful degradation on all error paths
+- Sync wrapper `interpret_reading_sync()` for CLI usage
+
+**src/tarotcli/config.py** (99% coverage):
+- Three-tier configuration hierarchy
+- Singleton pattern with lazy loading
+- Provider-specific model configs
+- API key management (environment only)
+- Path handling (data directory, XDG compliance)
+
+**src/tarotcli/ui.py** (95% coverage):
+- Questionary interactive prompts
+- Spread selection with descriptions
+- Focus area choice with context
+- Optional question input
+- AI preference prompt (shows configured provider)
+- Formatted reading display with ASCII borders
+
+**src/tarotcli/cli.py** (100% coverage):
+- Typer-based command interface
+- Commands: `read`, `version`, `list-spreads`, `config-info`
+- Interactive and argument modes
+- Provider override support
+- JSON/markdown output formats
+- Error handling with helpful messages
+
+**data/tarot_cards_RW.jsonl** (read-only):
+- 78 complete cards from A.E. Waite's *The Pictorial Key to the Tarot* (1911)
+- Authoritative source - do not regenerate or modify
+- Fields: name, arcana, suit, value, upright_meaning, reversed_meaning, description, img
+
+---
+
+## Configuration System
+
+### Three-Tier Hierarchy
+
+**1. Environment Variables** (highest priority):
+```bash
+# Config overrides
+TAROTCLI_MODELS_DEFAULT_PROVIDER=ollama
+TAROTCLI_MODELS_PROVIDERS_CLAUDE_TEMPERATURE=0.9
+
+# API keys (security: never in YAML files)
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+OPENROUTER_API_KEY=sk-or-...
+```
+
+**2. User Config Files** (middle priority):
+```yaml
+# ./config.yaml (project root - development)
+# ~/.config/tarotcli/config.yaml (XDG standard - installed package)
+
+models:
+    default_provider: "ollama"
+    providers:
+        ollama:
+            model: "ollama_chat/deepseek-r1:8b"
+            api_base: "http://localhost:11434"
+            temperature: 0.8
+            max_tokens: 1500
+        claude:
+            model: "claude-sonnet-4-20250514"
+            temperature: 0.7
+            max_tokens: 2000
+```
+
+**3. Bundled Defaults** (fallback):
+- `src/tarotcli/default.yaml` (versioned with package)
+- Ensures application works without any user configuration
+
+### Supported AI Providers
+
+**claude** (Anthropic):
+- Cloud API, requires `ANTHROPIC_API_KEY`
+- Default model: `claude-sonnet-4-20250514`
+- Best quality interpretations
+
+**ollama** (Local):
+- Local inference, no API key needed
+- Requires Ollama server running (`ollama serve`)
+- Model example: `ollama_chat/deepseek-r1:8b`
+- Hardware-dependent performance (8B param models need decent GPU)
+
+**openai** (OpenAI):
+- Cloud API, requires `OPENAI_API_KEY`
+- Model example: `gpt-4`
+
+**openrouter** (OpenRouter):
+- Cloud aggregator, requires `OPENROUTER_API_KEY`
+- Access to multiple model providers
+
+### Configuration Usage
+
+```python
+from tarotcli.config import get_config
+
+config = get_config()
+provider = config.get("models.default_provider")  # "claude"
+model_config = config.get_model_config("ollama")  # Full provider config
+api_key = config.get_api_key("claude")  # ANTHROPIC_API_KEY from env
+data_path = config.get_data_path("tarot_cards_RW.jsonl")  # Path to dataset
+```
+
+---
+
+## AI Integration
 
 ### The Differentiator: Waite Imagery Descriptions
 
-**What makes this authentic vs generic AI tarot:**
+**What makes this authentic vs generic AI tarot**:
 
-The dataset includes A.E. Waite's 1911 imagery descriptions (~1,600 chars per card):
+Dataset includes A.E. Waite's 1911 imagery descriptions (~1,600 chars per card) alongside traditional meanings (~140 chars). AI prompt includes **both** description (symbolic analysis) and meanings (interpretation keywords).
 
+**Example from dataset**:
 ```json
 {
   "name": "The Magician",
-  "upright_meaning": "Skill, diplomacy, address...",    // ~140 chars
-  "description": "A youthful figure in the robe of a magician, having the
-                  countenance of divine Apollo..."      // ~1,600 chars
+  "upright_meaning": "Skill, diplomacy, address, subtlety...",
+  "description": "A youthful figure in the robe of a magician, having the 
+                  countenance of divine Apollo, with smile of confidence and 
+                  shining eyes. Above his head is the mysterious sign of the 
+                  Holy Spirit, the sign of life, like an endless cord, forming 
+                  the figure 8 in a horizontal position..."
 }
 ```
 
-**AI prompt includes BOTH**:
-- `description`: Waite's symbolic analysis of card imagery
-- `upright_meaning`/`reversed_meaning`: Traditional interpretation
+**Result**: AI synthesizes authoritative 1911 source material, not generic training data. Interpretations reference actual card symbolism (white robe, red cloak, garden roses) rather than abstract meanings.
 
-**Result**: AI synthesizes authoritative 1911 source material, not generic training data.
-
-**Prompt size**: ~4,300 chars for 3-card reading, ~12,000 chars for Celtic Cross (10 cards)
+**Prompt size**: 
+- 3-card reading: ~4,300 chars
+- Celtic Cross (10 cards): ~12,000 chars
 
 ### Focus Area Contexts
 
 AI prompt includes tailored framing for each `FocusArea`:
-- **Career**: Professional development, decision-making guidance
-- **Relationships**: Interpersonal dynamics, emotional connections
-- **Personal Growth**: Self-development, inner work
-- **Spiritual**: Consciousness exploration, higher purpose
-- **General**: Holistic life guidance
+- **Career**: Professional development, decision-making, workplace dynamics
+- **Relationships**: Interpersonal connections, emotional patterns, communication
+- **Personal Growth**: Self-development, inner work, behavioral patterns
+- **Spiritual**: Consciousness exploration, higher purpose, existential questions
+- **General**: Holistic life guidance without specific domain focus
 
-### Testing AI Integration
+### LiteLLM Integration
 
-**Unit tests** (100% coverage, no real API calls):
-```bash
-pytest tests/test_ai.py -v                    # 20 tests, all mocked
-pytest tests/test_ai.py --cov=tarotcli.ai     # 100% coverage
+**Async implementation** (future-proofed for web API):
+```python
+async def interpret_reading(
+    reading: Reading,
+    provider: str | None = None
+) -> str:
+    """Generate AI interpretation or return baseline on any error."""
+    # Config-driven provider selection
+    # Graceful degradation on all error paths
+    # Always returns valid interpretation
 ```
 
-**Manual validation** (requires API key):
-```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
-python examples/demo_ai_interpretation.py     # End-to-end validation
-
-# Debug mode: See actual prompt sent to AI
-DEBUG_PROMPT=1 python examples/demo_ai_interpretation.py
-
-# Compare Claude vs Ollama with identical reading
-python examples/demo_ai_comparison.py
+**Sync wrapper for CLI**:
+```python
+def interpret_reading_sync(
+    reading: Reading,
+    provider: str | None = None
+) -> str:
+    """Synchronous wrapper using asyncio.run()."""
+    return asyncio.run(interpret_reading(reading, provider))
 ```
 
-Debug mode shows full 4,300-char prompt including Waite imagery descriptions.
+---
 
-### Error Handling
+## Dataset & Sample Data
 
-**All error paths return baseline interpretation:**
-- Missing API key → immediate return (no API attempt)
-- Timeout → catch `asyncio.TimeoutError`
-- API error → catch generic `Exception`
-- None content → explicit check before return
+### Rider-Waite-Smith Tarot Deck
 
-**No exceptions propagate to user** - readings never fail.
+**Source**: A.E. Waite's *The Pictorial Key to the Tarot* (1911)
+**Format**: JSONL (JSON Lines) - one card per line
+**Total Cards**: 78 (22 Major Arcana + 56 Minor Arcana)
 
-## Testing Workflow
+### Sample Card Entries
 
+**Major Arcana Example**:
+```json
+{
+  "name": "The Fool",
+  "arcana": "Major Arcana",
+  "suit": null,
+  "value": 0,
+  "upright_meaning": "Folly, mania, extravagance, intoxication, delirium, frenzy, bewrayment.",
+  "reversed_meaning": "Negligence, absence, distribution, carelessness, apathy, nullity, vanity.",
+  "description": "With light step, as if earth and its trammels had little power to restrain him, a young man in gorgeous vestments pauses at the brink of a precipice among the great heights of the world; he surveys the blue distance before him-its expanse of sky rather than the prospect below. His act of eager walking is still indicated, though he is stationary at the given moment; his dog is still bounding. The edge which opens on the depth has no terror; it is as if angels were waiting to uphold him, if it came about that he leaped from the height. His countenance is full of intelligence and expectant dream. He has a rose in one hand and in the other a costly wand, from which depends over his right shoulder a wallet curiously embroidered. He is a prince of the other world on his travels through this one-all amidst the morning glory, in the keen air. The sun, which shines behind him, knows whence he came, whither he is going, and how he will return by another path after many days.",
+  "img": "https://sacred-texts.com/tarot/pkt/img/ar00.jpg"
+}
+```
+
+**Minor Arcana Example**:
+```json
+{
+  "name": "Seven of Cups",
+  "arcana": "Minor Arcana",
+  "suit": "Cups",
+  "value": 7,
+  "upright_meaning": "Fairy favours, images of reflection, sentiment, imagination, things seen in the glass of contemplation; some attainment in these degrees, but nothing permanent or substantial is suggested.",
+  "reversed_meaning": "Desire, will, determination, project.",
+  "description": "Strange chalices of vision, but the images are more especially those of the fantastic spirit. There is a draped figure looking at these cups, or rather at the images which they reflect in the manner of a mirror. On one is the figure of a man, on another a woman, on a third the form of a bird, and on the fourth is a monster with three heads. The fifth has a house, the sixth a wreath of jewels, and the seventh is veiled, but shows the semblance of a face.",
+  "img": "https://sacred-texts.com/tarot/pkt/img/cu07.jpg"
+}
+```
+
+### Field Definitions
+
+- **name**: Card title (e.g., "The Magician", "Seven of Cups")
+- **arcana**: "Major Arcana" or "Minor Arcana"
+- **suit**: null for Major Arcana, "Wands"/"Cups"/"Swords"/"Pentacles" for Minor
+- **value**: 0-21 for Major, 1-10 for Minor (Page=11, Knight=12, Queen=13, King=14)
+- **upright_meaning**: Traditional interpretation (~140 chars)
+- **reversed_meaning**: Inverted card meaning (~140 chars)
+- **description**: Waite's 1911 imagery analysis (~1,600 chars) - **the differentiator**
+- **img**: URL to card artwork from sacred-texts.com
+
+---
+
+## Development Standards
+
+### Code Style
+
+**Type Safety**:
+- Pydantic v2 models for all data structures
+- Type hints on all function signatures
+- Use `str | None` syntax (not `Optional[str]`)
+- Strict validation at data boundaries
+
+**Docstrings**:
+```python
+def function_name(arg1: str, arg2: int) -> dict:
+    """Short description in imperative mood.
+    
+    Longer explanation with architectural context and rationale.
+    
+    Args:
+        arg1: Description of first argument.
+        arg2: Description of second argument.
+    
+    Returns:
+        Description of return value and structure.
+    
+    Raises:
+        ErrorType: When this specific error occurs.
+    
+    Example:
+        >>> result = function_name("value", 42)
+        >>> print(result)
+        {'key': 'value'}
+    
+    Notes:
+        - Foundation-first principle: Why this approach scales
+        - Technical consideration: Edge case handling
+    """
+```
+
+**Error Handling**:
+- All functions that could fail must handle errors gracefully
+- LLM functions return baseline on any error (never raise)
+- Use descriptive error messages with actionable guidance
+- Log errors for debugging, display user-friendly messages
+
+### Testing Requirements
+
+**Current Coverage**: 94% overall (86/86 tests passing)
+- ai.py: 100% ✅
+- models.py: 100% ✅
+- spreads.py: 100% ✅
+- config.py: 99% ✅
+- cli.py: 100% ✅
+- ui.py: 95% ✅
+- deck.py: 87% ⚠️ (error paths not fully tested, acceptable)
+
+**Testing Strategy**:
 1. Write test for new functionality FIRST
 2. Implement functionality until test passes
 3. Run full test suite to verify no regressions
 4. Check coverage: `pytest --cov=tarotcli`
 5. Only commit when all tests pass
 
-## Git Workflow
+**Test Organization**:
+- `tests/test_deck.py`: Deck operations (11 tests)
+- `tests/test_spreads.py`: Spread layouts (10 tests)
+- `tests/test_config.py`: Configuration system (33 tests)
+- `tests/test_ai.py`: AI integration (20 tests, all mocked)
+- `tests/test_cli.py`: CLI commands (12 tests, CliRunner)
+- `tests/conftest.py`: Shared fixtures
 
-**Commit Format:** Conventional Commits
+**Mocking Standards**:
+- Mock external APIs (LiteLLM) - no real calls in unit tests
+- Mock questionary prompts in CLI tests
+- Use pytest fixtures for complex setup
+- Isolate tests from user config files
+
+### Git Workflow
+
+**Commit Format** (Conventional Commits):
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types**:
 - `feat(scope):` New feature
 - `fix(scope):` Bug fix
 - `test(scope):` Adding/updating tests
 - `docs:` Documentation only
 - `refactor(scope):` Code change that neither fixes bug nor adds feature
+- `chore:` Maintenance tasks
 
-**Milestone Tagging:**
-- Tag each completed milestone: `git tag -a v0.1.0 -m "Milestone 1: Core Deck Operations"`
-- Push tags: `git push origin --tags`
-
-## Important Notes
-
-- **Dataset integrity**: `data/tarot_cards_RW.jsonl` contains 78 complete cards with essential fields from A.E. Waite's *The Pictorial Key to the Tarot* (1911). Dataset matches ekelen's tarot-api source structure. Do not regenerate or modify.
-- **Graceful degradation**: Any function that calls LLM must catch all exceptions and return baseline interpretation. Readings NEVER fail.
-- **No premature optimization**: Implement according to blueprint, resist feature additions until milestone complete.
-
-## Repository Structure
-
-```
-src/tarotcli/ # Package source
-tests/ # Test suite
-data/ # Dataset (read-only)
-docs/private/ # Personal docs (gitignored, symlinked to Obsidian)
-examples/ # Usage examples
-```
-
-Private documentation (blueprints, personal notes) lives in Obsidian vault, symlinked to `docs/private/tarotCLI/`.
-
----
-
-## Core Files
-
-- `src/tarotcli/models.py` - Pydantic data models (Card, DrawnCard, Reading, FocusArea)
-- `src/tarotcli/deck.py` - Deck operations (load 78 cards from JSONL, shuffle, draw)
-- `src/tarotcli/spreads.py` - Spread layouts (single, three-card, Celtic Cross)
-- `src/tarotcli/ai.py` - LLM API integration via LiteLLM (graceful degradation)
-- `src/tarotcli/config.py` - Configuration management system (Milestone 3.5)
-- `src/tarotcli/ui.py` - **NEW** - Questionary interactive prompts (Milestone 4)
-- `src/tarotcli/cli.py` - **NEW** - Typer CLI commands + main entry point (Milestone 4)
-- `src/tarotcli/default.yaml` - Bundled default configuration
-- `data/tarot_cards_RW.jsonl` - 78-card Rider-Waite dataset
-
-## Configuration System (Milestone 3.5)
-
-**Three-tier configuration hierarchy:**
-
-1. **Environment variables** (highest priority)
-   - `TAROTCLI_*` prefix for config overrides
-   - API keys: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
-   - Example: `TAROTCLI_MODELS_DEFAULT_PROVIDER=ollama`
-
-2. **User config files** (middle priority)
-   - `./config.yaml` (project root - for development)
-   - `~/.config/tarotcli/config.yaml` (XDG standard - for installed package)
-
-3. **Bundled defaults** (fallback)
-   - `src/tarotcli/default.yaml` (versioned with package)
-
-## Testing Workflow
-
-Current test suite: **86/86 tests passing (100% pass rate, 94%+ overall coverage)**
-- `tests/test_deck.py`: 11 tests (87% deck.py coverage) ✅
-- `tests/test_spreads.py`: 10 tests (100% spreads.py coverage) ✅
-- `tests/test_config.py`: 33 tests (99% config.py coverage) ✅
-- `tests/test_ai.py`: 20 tests (100% ai.py coverage) ✅
-- `tests/test_cli.py`: **NEW 12 tests** (100% cli.py coverage) ✅
-
-**Testing Strategy:**
-1. Write test for new functionality FIRST
-2. Implement functionality until test passes
-3. Run full test suite to verify no regressions
-4. Check coverage: `pytest --cov=tarotcli`
-5. Only commit when all tests pass
----
-
-## Outstanding Issues & Future Work
-
-### Current Known Issues
-
-**Ollama Timeout Issue** (v0.4.0):
-- LiteLLM APIConnectionError with long prompts (~4,300 chars) on current setup
-- Simple prompts work fine, full tarot prompts timeout after 30s
-- Needs testing on alternate machine to determine if environment-specific
-- Workaround: Claude and other providers work perfectly, graceful degradation to baseline
-
-### Future Milestones
-
-**Milestone 4.1 - Ollama Reliability**:
-- Resolve timeout issues with long prompts
-- Optimize prompt size or increase timeout configuration
-- Test on multiple development environments
-
-**Milestone 5 - Reading Persistence** (v0.5.0) - **NEXT**:
-- Save readings to user-specified directory
-- Multiple output formats: JSON, markdown, plain text
-- Reading history and retrieval functionality
-- README promises this feature - needs implementation
-
-**Milestone 6 - Advanced CLI Features** (v0.6.0):
-- Advanced visualization of cards and spreads
-- Reading export formats (HTML, PDF)
-- Statistical analysis of reading patterns
-
----
-
-## Repository Structure
-
-```
-src/tarotcli/ # Package source
-tests/ # Test suite (86/86 tests passing)
-data/ # Dataset (read-only)
-docs/ # Documentation
-examples/ # Usage examples
-scripts/ # Development utils
-```
-
----
-
-## CLI Usage Examples (v0.4.0)
-
-**Interactive Mode:**
+**Examples**:
 ```bash
+feat(cli): Add interactive reading flow with questionary prompts
+test(ai): Add comprehensive mocking for multi-provider support
+docs: Update AGENTS.md with dataset sample entries
+fix(config): Handle missing user config file gracefully
+```
+
+**Milestone Tagging**:
+```bash
+git tag -a v0.4.0 -m "Milestone 4: Interactive CLI"
+git push origin v0.4.0
+```
+
+**5-Minute Rule**: If spending >5 minutes on commit strategy, just commit. Perfect is enemy of shipped.
+
+---
+
+## Completed Milestones
+
+### Milestone 1 (v0.1.0) - Core Deck Operations ✅
+
+**Deliverables**:
+- Load 78 cards from JSONL dataset
+- Shuffle deck (with optional seed for testing)
+- Draw N cards without replacement
+- Type-safe Card and Deck models
+
+**Acceptance Criteria**:
+- `TarotDeck` class with `load()`, `shuffle()`, `draw()` methods
+- All 78 cards load correctly with complete data
+- Drawing removes cards from available pool
+- Reproducible shuffles via seed parameter
+- 11 tests passing with 87% coverage
+
+### Milestone 2 (v0.2.0) - Spread Layouts ✅
+
+**Deliverables**:
+- Three spread types: single, three, celtic
+- Position meaning assignment
+- Baseline interpretation from card meanings
+- Reversed card handling
+
+**Acceptance Criteria**:
+- `Spread` classes for each layout
+- `DrawnCard` model with position and reversal
+- `Reading` model with baseline interpretation
+- Works completely offline (no AI dependency)
+- 10 tests passing with 100% coverage
+
+### Milestone 3 (v0.3.0) - AI Integration ✅
+
+**Deliverables**:
+- LiteLLM async integration
+- Waite imagery descriptions in prompts
+- Focus area contexts
+- Graceful degradation pattern
+- Sync wrapper for CLI usage
+
+**Acceptance Criteria**:
+- AI interpretation enhances readings without breaking offline mode
+- All error paths return baseline interpretation
+- No exceptions propagate to user
+- Prompt includes both imagery and meanings
+- 20 tests passing with 100% coverage (all mocked)
+
+### Milestone 3.5 (v0.3.5) - Configuration System ✅
+
+**Deliverables**:
+- Three-tier config hierarchy (env → user → defaults)
+- Multi-provider support (Claude, Ollama, OpenAI, OpenRouter)
+- API key management (environment only)
+- XDG-compliant user config directory
+
+**Acceptance Criteria**:
+- Config singleton with lazy loading
+- Provider switching via single config line
+- Environment variables override file config
+- Bundled defaults ensure zero-config functionality
+- 33 tests passing with 99% coverage
+
+### Milestone 4 (v0.4.0) - Interactive CLI ✅
+
+**Deliverables**:
+- Typer-based command interface
+- Questionary interactive prompts
+- Multiple output formats (markdown, JSON)
+- Provider override via CLI flag
+- Comprehensive help and error messages
+
+**Acceptance Criteria**:
+- `tarotcli read` works interactively and with arguments
+- Commands: `version`, `list-spreads`, `config-info`
+- JSON output for automation/scripting
+- Graceful error handling with helpful guidance
+- 12 CLI tests passing with 100% coverage
+
+---
+
+## Future Work
+
+### Known Issues
+
+**Ollama Timeout with Long Prompts**:
+- Issue: LiteLLM APIConnectionError with full tarot prompts (~4,300 chars)
+- Environment: P71 Thinkpad with P5000 GPU (5GB VRAM)
+- Resolution: Works perfectly on 3080 GPU (10GB VRAM)
+- Assessment: Hardware constraint, not code issue
+- Workaround: Use Claude or smaller Ollama models; baseline always works
+
+### Milestone 5 (v0.5.0) - Reading Export
+
+**Scope**:
+- Save readings to configurable directory
+- Timestamped filenames: `reading_2025-11-07_14-30-22.md`
+- Markdown and JSON formats
+- Config option: `output.readings_directory` (default: `~/tarot_readings/`)
+
+**Explicitly NOT included**:
+- Database persistence
+- Reading history retrieval
+- Search or filtering functionality
+- Statistics or pattern analysis
+
+**Acceptance Criteria**:
+- `tarotcli read --save` writes file to configured directory
+- Filename includes timestamp for uniqueness
+- Markdown format includes formatted card display
+- JSON format matches `reading.model_dump_json()` structure
+- User can specify custom directory via config or CLI flag
+
+### Card Imagery Toggle (v0.6.0)
+
+**Scope**:
+- CLI flag: `--show-imagery` includes Waite descriptions in output
+- Default behavior unchanged (effective meanings only)
+- Helps users understand AI's symbolic synthesis
+- Educational feature for tarot learning
+
+**Implementation**:
+```bash
+# Default (current behavior)
+tarotcli read --spread three
+
+# With imagery descriptions
+tarotcli read --spread three --show-imagery
+```
+
+**Output difference**:
+```
+Default:
+  Past: The Magician ↑ Upright
+  Meaning: Skill, diplomacy, address, subtlety
+
+With --show-imagery:
+  Past: The Magician ↑ Upright
+  Meaning: Skill, diplomacy, address, subtlety
+  Imagery: A youthful figure in the robe of a magician, having the 
+           countenance of divine Apollo, with smile of confidence...
+```
+
+**Acceptance Criteria**:
+- Flag `--show-imagery` adds descriptions to terminal output
+- JSON output includes `imagery_descriptions` array when flag set
+- Does not affect AI prompt (descriptions already included there)
+- Maintains clean default output for experienced users
+
+---
+
+## Usage Examples
+
+### Interactive Mode
+```bash
+# Launch interactive prompts (recommended)
 tarotcli read
-# Prompts for: spread type ➜ focus area ➜ question ➜ AI preference
+
+# Output:
+# 🔮 TarotCLI - Interactive Reading
+#
+# Select spread type:
+#   › Three Card - Past, Present, Future (3 cards)
+#     Celtic Cross - Comprehensive life situation (10 cards)
+#     Single Card - Direct guidance (1 card)
 ```
 
-**CLI Arguments Mode:**
+### CLI Arguments Mode
 ```bash
-# Quick reading with baseline interpretation
+# Quick reading with baseline only
 tarotcli read --spread single --focus general --no-ai
 
 # Full AI reading with specific question
-tarotcli read --spread three --focus career --question "Should I change jobs?" --provider claude
+tarotcli read --spread three --focus career \
+  --question "Should I change jobs?"
+
+# Provider override (test different models)
+tarotcli read --spread three --focus spiritual --provider ollama
 
 # JSON output for automation
-tarotcli read --spread celtic --focus relationships --json
-
-# Configuration checks
-tarotcli config-info          # Show current setup
-tarotcli list-spreads         # Available spread types
-tarotcli version              # Current version
+tarotcli read --spread celtic --focus relationships --json > reading.json
 ```
 
-**Provider Override Examples:**
+### Information Commands
 ```bash
-# Test different AI providers
-tarotcli read --spread three --focus spiritual --provider ollama    # Local inference
-tarotcli read --spread three --focus spiritual --provider claude    # Claude (cloud)
-tarotcli read --spread three --focus spiritual --provider openai    # OpenAI (cloud)
+# Show current configuration
+tarotcli config-info
+# Output:
+# 🔮 TarotCLI Configuration
+#   Default Provider: claude
+#   Model: claude-sonnet-4-20250514
+#   Data Path: /path/to/data/tarot_cards_RW.jsonl
+
+# List available spreads
+tarotcli list-spreads
+# Output:
+# Available Spreads:
+#   single       - Single Card (1 card)
+#                  Direct guidance for specific question
+#   three        - Three Card (3 cards)
+#                  Past, Present, Future analysis
+#   celtic       - Celtic Cross (10 cards)
+#                  Comprehensive life situation examination
+
+# Check version
+tarotcli version
+# Output: TarotCLI version 0.4.0
 ```
+
+### Development Commands
+```bash
+# Install package in editable mode
+uv pip install -e '.[dev]'
+
+# Run full test suite
+pytest
+
+# Run specific test module
+pytest tests/test_cli.py -v
+
+# Check test coverage
+pytest --cov=tarotcli --cov-report=html
+
+# Format code before commit
+ruff format src/ tests/
+
+# Run CLI directly from source
+python -m tarotcli read
+```
+
+---
+
+## Quick Reference
+
+**Project Structure**:
+```
+tarotcli/
+├── src/tarotcli/        # Package source
+│   ├── models.py        # Pydantic data models
+│   ├── deck.py          # Deck operations
+│   ├── spreads.py       # Spread layouts
+│   ├── ai.py            # LLM integration
+│   ├── config.py        # Configuration system
+│   ├── ui.py            # Interactive prompts
+│   ├── cli.py           # CLI commands
+│   └── default.yaml     # Bundled config
+├── tests/               # Test suite (86 tests)
+├── data/                # Tarot dataset (read-only)
+├── examples/            # Usage demonstrations
+├── docs/                # Documentation
+├── pyproject.toml       # Package metadata
+└── README.md            # User documentation
+```
+
+**Key Files**:
+- `src/tarotcli/cli.py`: Entry point (`tarotcli` command)
+- `data/tarot_cards_RW.jsonl`: 78-card dataset (authoritative source)
+- `src/tarotcli/default.yaml`: Bundled configuration defaults
+- `config.example.yaml`: User configuration template
+- `.env.example`: API key template
+
+**Documentation**:
+- `AGENTS.md`: This file (development context)
+- `README.md`: User-facing documentation
+- `docs/private/`: Session journals (Obsidian vault)
+
+---
+
+**Last Updated**: November 7, 2025 (v0.4.0)
+**Maintainer**: melbourne-quantum-dev
+**Repository**: Foundation-first development, professional git hygiene, comprehensive testing
