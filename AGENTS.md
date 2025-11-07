@@ -1,11 +1,18 @@
-# TarotCLI - Claude Code Context
+# TarotCLI - Development Agent Context
 
 ## Project Overview
 
 Minimalist tarot reading CLI with optional AI interpretation.
 Foundation-first architecture: core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.3.5 development (Milestone 3.5 complete, preparing for Milestone 4)
+**Current Status**: v0.3.5 stable (Milestone 3.5 complete, all tests passing, ready for Milestone 4)
+
+**Test Coverage**: 91% overall (74/74 tests passing)
+- ai.py: 100% coverage
+- models.py: 100% coverage  
+- spreads.py: 100% coverage
+- config.py: 99% coverage
+- deck.py: 87% coverage
 
 **Completed Milestones:**
 - ✅ Milestone 1 (v0.1.0): Core deck operations
@@ -68,11 +75,11 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 - Mock external APIs (LiteLLM) in tests
 
 **Current test status:**
-- `tests/test_deck.py`: 11 tests (95% deck.py coverage)
+- `tests/test_deck.py`: 11 tests (87% deck.py coverage)
 - `tests/test_spreads.py`: 10 tests (100% spreads.py coverage)
 - `tests/test_config.py`: 33 tests (99% config.py coverage)
-- `tests/test_ai.py`: 20 tests - **5 failing due to config system migration (to be fixed)**
-- **Total**: 69/74 tests passing (93% pass rate)
+- `tests/test_ai.py`: 20 tests (100% ai.py coverage)
+- **Total**: 74/74 tests passing (100% pass rate, 91% overall coverage)
 
 **Demonstration scripts** (manual validation in `examples/`):
 - `demo_deck_operations.py`: Validates deck operations
@@ -80,7 +87,7 @@ Foundation-first architecture: core functionality works reliably without LLM dep
 - `demo_ai_interpretation.py`: Validates AI integration (use `DEBUG_PROMPT=1` to see full prompt)
 - `demo_ai_comparison.py`: Side-by-side Claude vs Ollama comparison
 
-**Note**: `tests/test_ai.py` requires config system updates (5 test failures) - see CLAUDE.local.md for fix strategy.
+**Note**: All tests now pass with proper config system integration and test isolation from user config files.
 
 ## Core Files
 
