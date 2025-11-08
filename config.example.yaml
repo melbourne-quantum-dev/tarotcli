@@ -1,4 +1,4 @@
-# tarotCLI User Configuration
+# TarotCLI User Configuration
 # Copy this file to config.yaml and customize your preferences
 # All settings are optional - defaults will be used if not specified
 
@@ -19,18 +19,18 @@ models:
     # EXPERIMENTAL: Quality degradation on complex spreads (Celtic Cross)
     # Requires Ollama installed locally with model pulled
     ollama:
-      model: "ollama_chat/deepseek-r1:8b"  # Or: ollama_chat/llama3.1, ollama_chat/llama3.2, ollama_chat/qwen2.5, etc.
+      model: "ollama_chat/deepseek-r1:8b"  # Choose model based on your needs
       api_base: "http://localhost:11434"
       temperature: 0.8
       max_tokens: 1500
       # Install: curl -fsSL https://ollama.com/install.sh | sh
       # Pull model: ollama pull deepseek-r1:8b
 
-# Output Configuration
-output:
-  format: "markdown"        # Options: markdown, json, plain
-  save_readings: true       # Save readings to file?
-  readings_dir: "~/Documents/tarot_readings"  # Where to save readings
+# Future functionality: Output Configuration
+# output:
+#  format: "markdown"        # Options: markdown, json, plain
+#  save_readings: true       # Save readings to file?
+#  readings_dir: "~/Documents/tarot_readings"  # Where to save readings
 
 # Advanced: Custom deck path (rarely needed)
 # data:
