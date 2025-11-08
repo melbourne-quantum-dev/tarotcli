@@ -1,13 +1,17 @@
-"""Tarot deck operations: loading, shuffling, and drawing cards.
+"""Tarot deck operations: loading, shuffling, drawing, and card lookup.
 
 This module implements the core deck mechanics:
 - Load 78 cards from JSONL with validation
 - Shuffle deck with proper randomisation
 - Draw cards with 50% reversal probability
 - Track remaining cards in current shuffle
+- Lookup individual cards by name (fuzzy matching)
 
 The TarotDeck class maintains state of the current shuffle and ensures
 cards are drawn without replacement until shuffle() is called again.
+
+The lookup_card() function provides card reference functionality for
+physical deck readings and tarot learning.
 
 Example:
     >>> from pathlib import Path
@@ -16,6 +20,11 @@ Example:
     >>> drawn = deck.draw(3)
     >>> print(f"Drew {len(drawn)} cards, {len(deck.remaining)} remain")
     Drew 3 cards, 75 remain
+
+    >>> # Card lookup for physical readings
+    >>> deck = TarotDeck.load_default()
+    >>> card = lookup_card(deck, "ace of wands")
+    >>> print(f"{card.name}: {card.upright_meaning}")
 """
 
 from pathlib import Path
@@ -198,3 +207,51 @@ class TarotDeck:
         (sorted by suit and value).
         """
         self.remaining = self.cards.copy()
+
+
+def lookup_card(deck: TarotDeck, search_term: str) -> Card | list[Card] | None:
+    """
+    Find card by name using case-insensitive partial match.
+
+    Supports fuzzy matching for user convenience: "ace wands", "Ace of Wands",
+    "ACE OF WANDS" all match the same card. Returns single card for unique match,
+    list of cards for ambiguous matches, or None if not found.
+
+    Args:
+        deck: TarotDeck instance with loaded cards.
+        search_term: Card name or partial name to search.
+
+    Returns:
+        - Card: Single matching card
+        - list[Card]: Multiple matches (ambiguous search)
+        - None: No matches found
+
+    Example:
+        >>> deck = TarotDeck.load_default()
+        >>> # Unique match
+        >>> card = lookup_card(deck, "magician")
+        >>> print(f"{card.name}: {card.upright_meaning}")
+
+        >>> # Ambiguous match
+        >>> result = lookup_card(deck, "ace")
+        >>> if isinstance(result, list):
+        ...     print(f"Found {len(result)} matches")
+
+        >>> # Not found
+        >>> card = lookup_card(deck, "nonexistent")
+        >>> if card is None:
+        ...     print("Card not found")
+    """
+    search_lower = search_term.lower()
+    matches = [c for c in deck.cards if search_lower in c.name.lower()]
+
+    if len(matches) == 0:
+        return None
+    elif len(matches) == 1:
+        return matches[0]
+    else:
+        # Multiple matches - check for exact match first
+        exact = [c for c in matches if c.name.lower() == search_lower]
+        if exact:
+            return exact[0]
+        return matches  # Return all matches for ambiguous case
