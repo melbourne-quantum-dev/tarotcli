@@ -154,50 +154,60 @@ tarotcli version         # Show version
 
 ## Configuration
 
-TarotCLI uses three-tier configuration: environment variables → `~/.config/tarotcli/config.yaml` → bundled defaults.
+TarotCLI uses three-tier configuration: environment variables override user config, which overrides bundled defaults.
 
-### API Keys (Environment Variables Only)
+### API Keys
+
+**Option 1: .env file (recommended for development)**
 ```bash
-# Claude (Anthropic)
-export ANTHROPIC_API_KEY="sk-ant-..."
+# Copy template
+cp .env.example .env
 
-# OpenAI
-export OPENAI_API_KEY="sk-..."
-
-# OpenRouter
-export OPENROUTER_API_KEY="sk-or-..."
-
-# Ollama runs locally (no key needed)
+# Edit .env file
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+OPENROUTER_API_KEY=sk-or-...
 ```
+
+**Option 2: Shell environment variables**
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+export OPENAI_API_KEY="sk-..."
+export OPENROUTER_API_KEY="sk-or-..."
+```
+
+**Note**: Ollama runs locally and requires no API key.
 
 ### User Configuration (Optional)
 
-Create `~/.config/tarotcli/config.yaml` to customize:
+Customize provider settings and output preferences:
+
+**For editable install** (development): Copy `config.example.yaml` to `./config.yaml` in project root
+
+**For installed package**: Copy to `~/.config/tarotcli/config.yaml`
+
+Example configuration:
 ```yaml
 # AI provider (claude, ollama, openai, openrouter)
-ai:
+models:
   default_provider: claude
 
 # Provider-specific settings
-models:
-  providers:
-    claude:
-      model: claude-sonnet-4-20250514
-      temperature: 0.7
-      max_tokens: 1500
-    
-    ollama:
-      model: llama3.2:latest
-      base_url: http://localhost:11434
-      temperature: 0.8
-      timeout: 30
-
-# Output preferences
-output:
-  show_baseline: false  # Show baseline even when AI available
+  models:
+    providers:
+      claude:
+        model: claude-haiku-4-5-20251001
+        temperature: 0.7
+        max_tokens: 1500
+      
+      ollama:
+        model: qwen3:4b
+        api_base: http://localhost:11434
+        temperature: 0.8
+        timeout: 30
 ```
 
-Full configuration reference: see `config.example.yaml` in repository.
+See `config.example.yaml` for complete reference with all available options.
 
 ## How It Works
 
