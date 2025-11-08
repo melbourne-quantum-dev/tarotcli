@@ -262,5 +262,146 @@ def test_read_command_all_spreads(spread_type):
         assert result.exit_code == 0
 
 
+# ============================================================================
+# Lookup Command Tests
+# ============================================================================
+
+
+def test_lookup_command_exact_match():
+    """Should display card meanings for exact match."""
+    mock_deck = Mock()
+    mock_card = Mock()
+    mock_card.name = "The Magician"
+    mock_card.upright_meaning = "Skill, diplomacy, address, subtlety"
+    mock_card.reversed_meaning = "Physician, Magus, mental disease"
+    mock_card.description = "A youthful figure in the robe of a magician..."
+
+    with (
+        patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
+        patch("tarotcli.cli.lookup_card", return_value=mock_card),
+    ):
+        result = runner.invoke(app, ["lookup", "the magician"])
+
+        assert result.exit_code == 0
+        assert "The Magician" in result.stdout
+        assert "↑ UPRIGHT" in result.stdout
+        assert "↓ REVERSED" in result.stdout
+        assert "Skill, diplomacy" in result.stdout
+        assert "Physician, Magus" in result.stdout
+        # Should NOT show imagery by default
+        assert "IMAGERY" not in result.stdout
+
+
+def test_lookup_command_with_imagery_flag():
+    """Should display imagery descriptions when --show-imagery flag is used."""
+    mock_deck = Mock()
+    mock_card = Mock()
+    mock_card.name = "Ace of Wands"
+    mock_card.upright_meaning = "Creation, invention, enterprise"
+    mock_card.reversed_meaning = "Fall, decadence, ruin"
+    mock_card.description = "A hand issuing from a cloud grasps a stout wand..."
+
+    with (
+        patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
+        patch("tarotcli.cli.lookup_card", return_value=mock_card),
+    ):
+        result = runner.invoke(app, ["lookup", "ace of wands", "--show-imagery"])
+
+        assert result.exit_code == 0
+        assert "Ace of Wands" in result.stdout
+        assert "🖼️  IMAGERY (Waite 1911)" in result.stdout
+        assert "A hand issuing from a cloud" in result.stdout
+
+
+def test_lookup_command_multiple_matches():
+    """Should display list of options when search is ambiguous."""
+    mock_deck = Mock()
+    mock_card1 = Mock()
+    mock_card1.name = "Ace of Wands"
+    mock_card2 = Mock()
+    mock_card2.name = "Ace of Cups"
+    mock_card3 = Mock()
+    mock_card3.name = "Ace of Swords"
+
+    # Return list for ambiguous match
+    with (
+        patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
+        patch("tarotcli.cli.lookup_card", return_value=[mock_card1, mock_card2, mock_card3]),
+    ):
+        result = runner.invoke(app, ["lookup", "ace"])
+
+        assert result.exit_code == 1
+        assert "Multiple cards matched 'ace'" in result.stdout
+        assert "Ace of Wands" in result.stdout
+        assert "Ace of Cups" in result.stdout
+        assert "Ace of Swords" in result.stdout
+        assert "Please refine your search" in result.stdout
+
+
+def test_lookup_command_not_found():
+    """Should display helpful error when card not found."""
+    mock_deck = Mock()
+
+    # Return None for not found
+    with (
+        patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
+        patch("tarotcli.cli.lookup_card", return_value=None),
+    ):
+        result = runner.invoke(app, ["lookup", "nonexistent"])
+
+        assert result.exit_code == 1
+        assert "Card not found: 'nonexistent'" in result.stdout
+        assert "Try:" in result.stdout
+        assert "Full name: 'Ace of Wands'" in result.stdout
+        assert "Partial match: 'magician'" in result.stdout
+
+
+def test_lookup_command_case_insensitive():
+    """Should handle case-insensitive searches."""
+    mock_deck = Mock()
+    mock_card = Mock()
+    mock_card.name = "The Fool"
+    mock_card.upright_meaning = "Folly, mania, extravagance"
+    mock_card.reversed_meaning = "Negligence, absence, distribution"
+    mock_card.description = "With light step..."
+
+    with (
+        patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
+        patch("tarotcli.cli.lookup_card", return_value=mock_card),
+    ):
+        result = runner.invoke(app, ["lookup", "THE FOOL"])
+
+        assert result.exit_code == 0
+        assert "The Fool" in result.stdout
+
+
+def test_lookup_command_partial_match():
+    """Should handle partial name matching."""
+    mock_deck = Mock()
+    mock_card = Mock()
+    mock_card.name = "The Magician"
+    mock_card.upright_meaning = "Skill, diplomacy"
+    mock_card.reversed_meaning = "Physician, Magus"
+    mock_card.description = "A youthful figure..."
+
+    with (
+        patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
+        patch("tarotcli.cli.lookup_card", return_value=mock_card),
+    ):
+        result = runner.invoke(app, ["lookup", "magician"])
+
+        assert result.exit_code == 0
+        assert "The Magician" in result.stdout
+
+
+def test_lookup_command_error_handling():
+    """Should handle unexpected errors gracefully."""
+    with patch("tarotcli.cli.TarotDeck.load_default", side_effect=Exception("Deck load error")):
+        result = runner.invoke(app, ["lookup", "the fool"])
+
+        assert result.exit_code == 1
+        assert "Error" in result.stdout
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
