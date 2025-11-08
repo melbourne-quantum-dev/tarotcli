@@ -553,7 +553,37 @@ git push origin v0.4.0
 - Assessment: Hardware constraint, not code issue
 - Workaround: Use Claude or smaller Ollama models; baseline always works
 
-### Milestone 5 (v0.5.0) - Reading Export
+---
+
+### Milestone 4.5 (v0.4.5) - Card Lookup **[PRIORITY 1]**
+
+**Scope**:
+- CLI command: `tarotcli lookup <card_name>`
+- Fuzzy name matching (case-insensitive, partial matches)
+- Display both upright and reversed meanings
+- Optional `--show-imagery` flag includes Waite's 1911 descriptions
+- Educational resource for physical deck practice
+
+**Rationale**: Positions tarotcli as both programmatic divination tool AND tarot learning resource. Immediate utility for users practicing with physical decks who want authoritative Waite meanings instead of SEO-optimized interpretations.
+
+**Explicitly NOT included**:
+- Multi-card reading mode (defer to observe usage patterns)
+- Spread layout for physical readings (Phase 2 consideration)
+- History of looked-up cards
+
+**Acceptance Criteria**:
+- `tarotcli lookup "ace of wands"` displays both orientations
+- Fuzzy matching handles typos and partial names
+- `--show-imagery` includes Waite's imagery descriptions
+- Graceful error handling for not found
+- 5+ tests covering match scenarios
+- Documentation updated with usage examples
+
+**Estimated effort**: 2 hours (1 hour implementation, 1 hour testing)
+
+---
+
+### Milestone 5 (v0.5.0) - Reading Export **[PRIORITY 2]**
 
 **Scope**:
 - Save readings to configurable directory
@@ -574,6 +604,10 @@ git push origin v0.4.0
 - JSON format matches `reading.model_dump_json()` structure
 - User can specify custom directory via config or CLI flag
 
+**Estimated effort**: 2-3 hours (1 hour implementation, 1 hour testing, 30 min docs)
+
+---
+
 ### Card Imagery Toggle (v0.6.0)
 
 **Scope**:
@@ -581,6 +615,11 @@ git push origin v0.4.0
 - Default behavior unchanged (effective meanings only)
 - Helps users understand AI's symbolic synthesis
 - Educational feature for tarot learning
+
+**Explicitly NOT included**:
+- Generating new imagery descriptions
+- Image display (text descriptions only)
+- Imagery-based search or filtering
 
 **Implementation**:
 ```bash
@@ -605,10 +644,13 @@ With --show-imagery:
 ```
 
 **Acceptance Criteria**:
-- Flag `--show-imagery` adds descriptions to terminal output
-- JSON output includes `imagery_descriptions` array when flag set
-- Does not affect AI prompt (descriptions already included there)
-- Maintains clean default output for experienced users
+- `tarotcli read --show-imagery` includes descriptions in reading display
+- `tarotcli lookup "card" --show-imagery` shows imagery for single card
+- Config option to make imagery default: `display.show_imagery: true`
+- Preserves minimalist default display
+- Documentation explains Waite description source
+
+**Estimated effort**: 1 hour (flag already exists in lookup, extend to read command)
 
 ---
 
