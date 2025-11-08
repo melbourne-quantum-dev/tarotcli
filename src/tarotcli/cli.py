@@ -2,27 +2,33 @@
 
 Implements complete tarot reading functionality through command-line interface.
 Supports both interactive mode with questionary prompts and CLI argument mode.
-Integrates with deck operations, spread layouts, AI interpretation, and configuration
-system.
+Integrates with deck operations, spread layouts, AI interpretation, and configuration.
 
 Commands:
-- read: Perform tarot readings (interactive or CLI args)
-- version: Display current version
-- list-spreads: Show available spread types
-- config-info: Display current configuration
+    read: Perform tarot readings (interactive or CLI args)
+    lookup: Look up meanings for specific cards (physical deck companion)
+    version: Display current version
+    list-spreads: Show available spread types
+    config-info: Display current configuration
 
 Features:
-- Multiple spread types (single, three, celtic)
-- AI provider override (claude, ollama, openai, openrouter)
-- JSON and markdown output formats
-- Graceful degradation to baseline interpretation
-- Progress indicators and error handling
+    - Multiple spread types (single, three, celtic)
+    - AI provider override (claude, ollama, openai, openrouter)
+    - JSON and markdown output formats
+    - Card lookup with fuzzy matching and imagery descriptions
+    - Graceful degradation to baseline interpretation
+    - Progress indicators and error handling
+
+Example:
+    $ tarotcli read --spread three --focus career
+    $ tarotcli lookup "ace of wands" --show-imagery
+    $ tarotcli config-info
 """
 
 import typer
 from typing import Optional
 from tarotcli.config import get_config
-from tarotcli.deck import TarotDeck
+from tarotcli.deck import TarotDeck, lookup_card
 from tarotcli.spreads import get_spread
 from tarotcli.models import FocusArea
 from tarotcli.ai import interpret_reading_sync
@@ -140,6 +146,65 @@ def read(
         print(reading.model_dump_json(indent=2))
     else:
         display_reading(reading)
+
+
+@app.command()
+def lookup(
+    card_name: str = typer.Argument(..., help="Card name to look up"),
+    show_imagery: bool = typer.Option(
+        False, "--show-imagery", help="Include Waite's imagery descriptions"
+    ),
+):
+    """Look up meanings for a specific tarot card.
+
+    Displays both upright and reversed interpretations from Waite's 1911
+    'Pictorial Key to the Tarot'. Use for physical deck readings or learning.
+
+    Examples:
+        tarotcli lookup "ace of wands"
+        tarotcli lookup "magician" --show-imagery
+    """
+    try:
+        deck = TarotDeck.load_default()
+        card = lookup_card(deck, card_name)
+
+        if card is None:
+            print(f"❌ Card not found: '{card_name}'")
+            print("\nTry:")
+            print("  - Full name: 'Ace of Wands'")
+            print("  - Partial match: 'magician'")
+            raise typer.Exit(1)
+
+        if isinstance(card, list):
+            print(f"\nMultiple cards matched '{card_name}':")
+            for c in card:
+                print(f"  - {c.name}")
+            print("\nPlease refine your search with a more specific card name.")
+            raise typer.Exit(1)
+
+        # Display card meanings (card is guaranteed to be Card type here)
+        print(f"\n{'=' * 60}")
+        print(f"{card.name}")
+        print(f"{'=' * 60}\n")
+
+        print(f"↑ UPRIGHT")
+        print(f"{'-' * 60}")
+        print(f"{card.upright_meaning}\n")
+
+        print(f"↓ REVERSED")
+        print(f"{'-' * 60}")
+        print(f"{card.reversed_meaning}\n")
+
+        if show_imagery:
+            print(f"🖼️  IMAGERY (Waite 1911)")
+            print(f"{'-' * 60}")
+            print(f"{card.description}\n")
+
+        print(f"{'=' * 60}\n")
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        raise typer.Exit(1)
 
 
 @app.command()
