@@ -4,7 +4,7 @@
 
 # Model provider selection
 models:
-  default_provider: "claude"  # Options: claude, ollama
+  default_provider: "claude"  # Options: claude, ollama, openai, openrouter
   
   providers:
     # Anthropic Claude Configuration
@@ -19,7 +19,7 @@ models:
     # EXPERIMENTAL: Quality degradation on complex spreads (Celtic Cross)
     # Requires Ollama installed locally with model pulled
     ollama:
-      model: "ollama_chat/deepseek-r1:8b"  # Choose model based on your needs
+      model: "ollama_chat/deepseek-r1:8b"  # Model options: https://ollama.com/library
       api_base: "http://localhost:11434"
       temperature: 0.8
       max_tokens: 1500
