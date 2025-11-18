@@ -9,7 +9,7 @@ Main Functions:
 - prompt_spread_selection(): Choose from available spreads
 - prompt_focus_area(): Select reading focus area
 - prompt_question(): Optional specific question
-- prompt_use_ai_interpretation(): Choose AI vs baseline interpretation
+- prompt_use_ai_interpretation(): Choose AI vs static interpretation
 - gather_reading_inputs(): Complete interactive flow
 - display_reading(): Formatted terminal output
 
@@ -102,7 +102,7 @@ def prompt_use_ai_interpretation() -> bool:
     Checks config to show which provider will be used.
 
     Returns:
-        True if user wants AI interpretation, False for baseline only
+        True if user wants AI interpretation, False for static only
     """
 
     config = get_config()
@@ -136,16 +136,16 @@ def gather_reading_inputs() -> Tuple[str, FocusArea, Optional[str], bool]:
     return spread_name, focus_area, question, use_ai
 
 
-def display_reading(reading: Reading, show_baseline: bool = False) -> None:
+def display_reading(reading: Reading, show_static: bool = False) -> None:
     # sourcery skip: extract-duplicate-method
     """Pretty-print reading results to console.
 
     Displays cards drawn, positions, and interpretation using ASCII formatting.
-    Shows AI interpretation if available, otherwise displays baseline.
+    Shows AI interpretation if available, otherwise displays static interpretation.
 
     Args:
         reading: Complete reading object with cards and interpretations.
-        show_baseline: If True, show baseline even when AI interpretation present.
+        show_static: If True, show static interpretation even when AI interpretation present.
 
     Returns:
         None. Prints formatted reading to stdout.
@@ -187,12 +187,12 @@ def display_reading(reading: Reading, show_baseline: bool = False) -> None:
 
     if reading.interpretation:
         print(reading.interpretation)
-        if show_baseline:
+        if show_static:
             print("\n" + "─" * 50)
-            print("BASELINE INTERPRETATION")
+            print("STATIC INTERPRETATION")
             print("─" * 50 + "\n")
-            print(reading.baseline_interpretation)
+            print(reading.static_interpretation)
     else:
-        print(reading.baseline_interpretation)
+        print(reading.static_interpretation)
 
     print("\n" + "═" * 50 + "\n")

@@ -43,7 +43,7 @@ async def interpret_reading(
     config system, not hardcoded values.
 
     Graceful degradation: ALWAYS returns valid interpretation. On any error
-    (missing API key, timeout, API failure), falls back to reading.baseline_interpretation.
+    (missing API key, timeout, API failure), falls back to reading.static_interpretation.
     This ensures readings never fail.
 
     Provider resolution: If no provider specified, uses configured default from
@@ -56,7 +56,7 @@ async def interpret_reading(
         timeout: API call timeout in seconds. Default 30s.
 
     Returns:
-        str: AI-generated interpretation or baseline interpretation on error.
+        str: AI-generated interpretation or static interpretation on error.
              NEVER raises exceptions - always returns valid text.
 
     Example:
@@ -87,9 +87,9 @@ async def interpret_reading(
     # Check API key requirement (Ollama doesn't need one, others do)
     if not api_key and resolved_provider != "ollama":
         print(
-            f"❌ No API key found for provider '{resolved_provider}', using baseline interpretation"
+            f"❌ No API key found for provider '{resolved_provider}', using static interpretation"
         )
-        return reading.baseline_interpretation
+        return reading.static_interpretation
 
     try:
         prompt = _build_interpretation_prompt(reading)
@@ -108,17 +108,17 @@ async def interpret_reading(
         # type: ignore - LiteLLM doesn't properly type streaming vs non-streaming responses
         interpretation = response.choices[0].message.content  # type: ignore[union-attr]
         if interpretation is None:
-            return reading.baseline_interpretation
+            return reading.static_interpretation
 
         return interpretation
 
     except asyncio.TimeoutError:
-        print(f"API timeout after {timeout}s, using baseline interpretation")
-        return reading.baseline_interpretation
+        print(f"API timeout after {timeout}s, using static interpretation")
+        return reading.static_interpretation
 
     except Exception as e:
-        print(f"API error ({type(e).__name__}), using baseline interpretation")
-        return reading.baseline_interpretation
+        print(f"API error ({type(e).__name__}), using static interpretation")
+        return reading.static_interpretation
 
 
 def _build_interpretation_prompt(reading: Reading) -> str:
@@ -174,10 +174,11 @@ def _build_interpretation_prompt(reading: Reading) -> str:
             cards_text,
             "\nPlease provide a cohesive interpretation that:",
             "1. Addresses the focus area and question (if provided)",
-            "2. Synthesizes the cards' positions and traditional meanings",
-            "3. Offers practical, grounded insight",
-            "4. Maintains respect for traditional tarot symbolism",
-            "5. Avoids overly mystical or vague language",
+            "2. Integrates the cards' positions and traditional meanings",
+            "3. References specific symbolic elements from the imagery descriptions",
+            "   (serpents, robes, objects, colors, positioning)",
+            "4. Offers practical, grounded insight for the querent's situation",
+            "5. Maintains respect for traditional tarot symbolism",
             "\nKeep the interpretation concise (200-300 words) and actionable.",
         ]
     )

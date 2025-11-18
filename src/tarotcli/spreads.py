@@ -1,7 +1,7 @@
 """Spread layouts and position meanings.
 
 This module defines tarot spread templates (number of cards, position meanings)
-and creates readings with baseline interpretation (no AI).
+and creates readings with static interpretation (no AI).
 """
 
 from dataclasses import dataclass
@@ -30,7 +30,7 @@ class SpreadLayout:
         Create a Reading from drawn cards by assigning position meanings.
 
         Takes raw drawn cards and enriches them with position context from
-        this spread layout. Generates baseline interpretation (no LLM).
+        this spread layout. Generates static interpretation (no LLM).
 
         Args:
             cards: Drawn cards from deck (must match position count)
@@ -38,7 +38,7 @@ class SpreadLayout:
             question: Optional specific question from user
 
         Returns:
-            Complete Reading object with positioned cards and baseline interpretation
+            Complete Reading object with positioned cards and static interpretation
 
         Raises:
             ValueError: If card count doesn't match spread position count
@@ -53,8 +53,8 @@ class SpreadLayout:
         for card, position_name in zip(cards, self.positions):
             card.position_meaning = position_name
 
-        # Generate baseline interpretation (non-LLM)
-        baseline = self._generate_baseline(cards, focus_area, question)
+        # Generate static interpretation (non-LLM)
+        static = self._generate_static(cards, focus_area, question)
 
         return Reading(
             spread_type=self.name,
@@ -62,17 +62,17 @@ class SpreadLayout:
             question=question,
             cards=cards,
             interpretation=None,  # AI interpretation added in Milestone 3
-            baseline_interpretation=baseline,
+            static_interpretation=static,
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
-    def _generate_baseline(
+    def _generate_static(
         self, cards: List[DrawnCard], focus_area: FocusArea, question: str | None
     ) -> str:
         """
         Generate non-LLM interpretation from card meanings.
 
-        Provides fallback interpretation when LLM unavailable. Simply presents
+        Provides static interpretation when LLM unavailable. Simply presents
         each card's position and traditional meaning from dataset.
 
         Foundation note: This ensures readings ALWAYS complete successfully,

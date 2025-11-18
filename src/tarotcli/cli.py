@@ -16,7 +16,7 @@ Features:
     - AI provider override (claude, ollama, openai, openrouter)
     - JSON and markdown output formats
     - Card lookup with fuzzy matching and imagery descriptions
-    - Graceful degradation to baseline interpretation
+    - Graceful degradation to static interpretation
     - Progress indicators and error handling
 
 Example:
@@ -59,7 +59,7 @@ def read(
     no_ai: bool = typer.Option(
         False,
         "--no-ai",
-        help="Use baseline interpretation only (static meanings, NO AI required).",
+        help="Use static interpretation only (card meanings from dataset, NO AI required).",
     ),
     provider: Optional[str] = typer.Option(
         None,
@@ -75,13 +75,13 @@ def read(
 
     Supports both interactive and CLI argument modes. Uses configured AI
     provider from config.yaml unless provider override is specified.
-    Gracefully degrades to baseline interpretation if AI unavailable.
+    Gracefully degrades to static interpretation if AI unavailable.
 
     Args:
         spread: Spread type (single, three, celtic). Interactive if not provided.
         focus: Focus area (career, relationships, personal_growth, spiritual, general).
         question: Specific question for the reading. Optional.
-        no_ai: Use baseline interpretation only, skipping AI completely.
+        no_ai: Use static interpretation only, skipping AI completely.
         provider: Override default AI provider (claude, ollama, openai, openrouter).
         json_output: Output as JSON instead of markdown formatted text.
 
@@ -136,7 +136,7 @@ def read(
             # Graceful degradation with helpful message
             typer.echo(
                 f"⚠️  AI interpretation failed: {e}\n"
-                f"📖 Using baseline interpretation instead.\n"
+                f"📖 Using static interpretation instead.\n"
                 f"💡 Check your config.yaml or API keys if unexpected.\n",
                 err=True,
             )
