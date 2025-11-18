@@ -36,6 +36,9 @@ private
 CLAUDE.local.md
 AGENTS.local.md
 
+# Agent context symlink (CLAUDE.md -> AGENTS.md)
+CLAUDE.md
+
 # Virtual environments
 venv/
 env/
