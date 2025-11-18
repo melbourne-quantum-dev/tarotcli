@@ -70,7 +70,7 @@ def test_read_command_no_ai_json_output():
             "focus_area": "general",
             "cards": [{"name": "The Magician", "reversed": False}],
             "interpretation": None,
-            "baseline_interpretation": "Single Card Reading\n\nFocus: General\n\n## Present: The Magician (Upright)\nSkill, diplomacy",
+            "static_interpretation": "Single Card Reading\n\nFocus: General\n\n## Present: The Magician (Upright)\nSkill, diplomacy",
         }
     )
 
@@ -91,7 +91,7 @@ def test_read_command_no_ai_json_output():
         reading_data = json.loads(result.stdout)
         assert "spread_type" in reading_data
         assert "cards" in reading_data
-        assert "baseline_interpretation" in reading_data
+        assert "static_interpretation" in reading_data
         assert reading_data["spread_type"] == "single"
         assert reading_data["focus_area"] == "general"
 
@@ -184,7 +184,7 @@ def test_read_command_provider_override():
 
 
 def test_read_command_ai_error_graceful_degradation():
-    """Should fall back to baseline when AI interpretation fails."""
+    """Should fall back to static interpretation when AI interpretation fails."""
     mock_deck = Mock()
     mock_deck.load_default.return_value = mock_deck
     mock_deck.draw.return_value = [Mock()]  # Provide mock cards
@@ -193,7 +193,7 @@ def test_read_command_ai_error_graceful_degradation():
     mock_spread.card_count.return_value = 1
     mock_reading = Mock()
     mock_reading.interpretation = None
-    mock_reading.baseline_interpretation = "Baseline interpretation"
+    mock_reading.static_interpretation = "Static interpretation"
     mock_reading.question = None
     mock_reading.cards = [Mock()]
     mock_reading.spread_type = "single"
@@ -217,7 +217,7 @@ def test_read_command_ai_error_graceful_degradation():
         assert result.exit_code == 0
         mock_display.assert_called_once_with(
             mock_reading
-        )  # Remove show_baseline parameter
+        )  # Called with reading object only
         # AI error message is printed via typer.echo(err=True) which goes to stderr
         assert (
             "AI interpretation failed" in result.stdout
@@ -326,7 +326,10 @@ def test_lookup_command_multiple_matches():
     # Return list for ambiguous match
     with (
         patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
-        patch("tarotcli.cli.lookup_card", return_value=[mock_card1, mock_card2, mock_card3]),
+        patch(
+            "tarotcli.cli.lookup_card",
+            return_value=[mock_card1, mock_card2, mock_card3],
+        ),
     ):
         result = runner.invoke(app, ["lookup", "ace"])
 
@@ -396,7 +399,9 @@ def test_lookup_command_partial_match():
 
 def test_lookup_command_error_handling():
     """Should handle unexpected errors gracefully."""
-    with patch("tarotcli.cli.TarotDeck.load_default", side_effect=Exception("Deck load error")):
+    with patch(
+        "tarotcli.cli.TarotDeck.load_default", side_effect=Exception("Deck load error")
+    ):
         result = runner.invoke(app, ["lookup", "the fool"])
 
         assert result.exit_code == 1

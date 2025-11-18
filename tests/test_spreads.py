@@ -34,8 +34,8 @@ def test_create_reading_assigns_positions(shuffled_deck):
     assert reading.cards[2].position_meaning == "Future"
 
 
-def test_create_reading_generates_baseline(shuffled_deck):
-    """Baseline interpretation includes all cards."""
+def test_create_reading_generates_static(shuffled_deck):
+    """Static interpretation includes all cards."""
     spread = get_spread("three")
     drawn = shuffled_deck.draw(3)
 
@@ -45,10 +45,10 @@ def test_create_reading_generates_baseline(shuffled_deck):
         question="Will this relationship work?",
     )
 
-    assert "Three Card Spread" in reading.baseline_interpretation
-    assert "Question" in reading.baseline_interpretation
-    # All drawn cards should appear in baseline
-    assert all(dc.card.name in reading.baseline_interpretation for dc in drawn)
+    assert "Three Card Spread" in reading.static_interpretation
+    assert "Question" in reading.static_interpretation
+    # All drawn cards should appear in static interpretation
+    assert all(dc.card.name in reading.static_interpretation for dc in drawn)
 
 
 def test_create_reading_raises_on_wrong_count(shuffled_deck):
@@ -60,14 +60,14 @@ def test_create_reading_raises_on_wrong_count(shuffled_deck):
         spread.create_reading(cards=drawn, focus_area=FocusArea.GENERAL)
 
 
-def test_baseline_includes_focus_area(shuffled_deck):
-    """Baseline interpretation mentions focus area."""
+def test_static_includes_focus_area(shuffled_deck):
+    """Static interpretation mentions focus area."""
     spread = get_spread("three")
     drawn = shuffled_deck.draw(3)
 
     reading = spread.create_reading(cards=drawn, focus_area=FocusArea.SPIRITUAL)
 
-    assert "Spiritual" in reading.baseline_interpretation
+    assert "Spiritual" in reading.static_interpretation
 
 
 def test_reading_has_timestamp(shuffled_deck):
@@ -112,6 +112,6 @@ def test_celtic_cross_full_flow(shuffled_deck):
     assert reading.cards[0].position_meaning == "Present Situation"
     assert reading.cards[9].position_meaning == "Outcome"
 
-    # Verify baseline includes all positions
+    # Verify static interpretation includes all positions
     for card in drawn:
-        assert card.card.name in reading.baseline_interpretation
+        assert card.card.name in reading.static_interpretation

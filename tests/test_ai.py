@@ -17,26 +17,26 @@ from tarotcli.models import FocusArea
 
 
 @pytest.mark.asyncio
-async def test_interpret_reading_returns_baseline_without_api_key(
+async def test_interpret_reading_returns_static_without_api_key(
     sample_reading, mock_config
 ):
-    """When no API key present, immediately return baseline interpretation."""
-    
+    """When no API key present, immediately return static interpretation."""
+
     # Ensure default provider is claude and API key returns None
     mock_config.get.return_value = "claude"
-    
+
     def mock_get_api_key_side_effect(provider=None):
         # Debug: Return None for claude specifically
         if provider == "claude" or provider is None:
             return None
         return f"test-{provider}-key-123"
-    
+
     mock_config.get_api_key.side_effect = mock_get_api_key_side_effect
 
     with patch("tarotcli.ai.get_config", return_value=mock_config):
         result = await interpret_reading(sample_reading)
 
-        assert result == sample_reading.baseline_interpretation
+        assert result == sample_reading.static_interpretation
 
 
 @pytest.mark.asyncio
@@ -49,9 +49,10 @@ async def test_interpret_reading_calls_api_with_key(sample_reading, mock_config)
         MagicMock(message=MagicMock(content="AI interpretation here"))
     ]
 
-    with patch("tarotcli.ai.get_config", return_value=mock_config), \
-         patch("tarotcli.ai.acompletion", return_value=mock_response) as mock_call:
-        
+    with (
+        patch("tarotcli.ai.get_config", return_value=mock_config),
+        patch("tarotcli.ai.acompletion", return_value=mock_response) as mock_call,
+    ):
         result = await interpret_reading(sample_reading)
 
         assert result == "AI interpretation here"
@@ -63,42 +64,45 @@ async def test_interpret_reading_calls_api_with_key(sample_reading, mock_config)
 
 @pytest.mark.asyncio
 async def test_interpret_reading_handles_timeout(sample_reading, mock_config):
-    """On API timeout, should return baseline gracefully."""
+    """On API timeout, should return static interpretation gracefully."""
 
-    with patch("tarotcli.ai.get_config", return_value=mock_config), \
-         patch("tarotcli.ai.acompletion", side_effect=asyncio.TimeoutError):
-        
+    with (
+        patch("tarotcli.ai.get_config", return_value=mock_config),
+        patch("tarotcli.ai.acompletion", side_effect=asyncio.TimeoutError),
+    ):
         result = await interpret_reading(sample_reading)
 
-        assert result == sample_reading.baseline_interpretation
+        assert result == sample_reading.static_interpretation
 
 
 @pytest.mark.asyncio
 async def test_interpret_reading_handles_api_error(sample_reading, mock_config):
-    """On generic API error, should return baseline gracefully."""
+    """On generic API error, should return static interpretation gracefully."""
 
-    with patch("tarotcli.ai.get_config", return_value=mock_config), \
-         patch("tarotcli.ai.acompletion", side_effect=Exception("API Error")):
-        
+    with (
+        patch("tarotcli.ai.get_config", return_value=mock_config),
+        patch("tarotcli.ai.acompletion", side_effect=Exception("API Error")),
+    ):
         result = await interpret_reading(sample_reading)
 
-        assert result == sample_reading.baseline_interpretation
+        assert result == sample_reading.static_interpretation
 
 
 @pytest.mark.asyncio
 async def test_interpret_reading_handles_none_content(sample_reading, mock_config):
-    """When API returns None content, should fallback to baseline."""
+    """When API returns None content, should fallback to static interpretation."""
 
     # Mock response with None content
     mock_response = MagicMock()
     mock_response.choices = [MagicMock(message=MagicMock(content=None))]
 
-    with patch("tarotcli.ai.get_config", return_value=mock_config), \
-         patch("tarotcli.ai.acompletion", return_value=mock_response):
-        
+    with (
+        patch("tarotcli.ai.get_config", return_value=mock_config),
+        patch("tarotcli.ai.acompletion", return_value=mock_response),
+    ):
         result = await interpret_reading(sample_reading)
 
-        assert result == sample_reading.baseline_interpretation
+        assert result == sample_reading.static_interpretation
 
 
 @pytest.mark.asyncio
@@ -108,9 +112,10 @@ async def test_interpret_reading_respects_custom_timeout(sample_reading, mock_co
     mock_response = MagicMock()
     mock_response.choices = [MagicMock(message=MagicMock(content="Test"))]
 
-    with patch("tarotcli.ai.get_config", return_value=mock_config), \
-         patch("tarotcli.ai.acompletion", return_value=mock_response) as mock_call:
-        
+    with (
+        patch("tarotcli.ai.get_config", return_value=mock_config),
+        patch("tarotcli.ai.acompletion", return_value=mock_response) as mock_call,
+    ):
         await interpret_reading(sample_reading, timeout=60)
 
         assert mock_call.call_args[1]["timeout"] == 60
@@ -123,9 +128,10 @@ async def test_interpret_reading_respects_custom_provider(sample_reading, mock_c
     mock_response = MagicMock()
     mock_response.choices = [MagicMock(message=MagicMock(content="Test"))]
 
-    with patch("tarotcli.ai.get_config", return_value=mock_config), \
-         patch("tarotcli.ai.acompletion", return_value=mock_response) as mock_call:
-        
+    with (
+        patch("tarotcli.ai.get_config", return_value=mock_config),
+        patch("tarotcli.ai.acompletion", return_value=mock_response) as mock_call,
+    ):
         await interpret_reading(sample_reading, provider="openai")
 
         assert mock_call.call_args[1]["model"] == "gpt-4"
@@ -201,22 +207,22 @@ def test_build_interpretation_prompt_includes_guidelines(sample_reading):
 
 def test_interpret_reading_sync_wrapper(sample_reading, mock_config):
     """Sync wrapper should execute async function and return result."""
-    
+
     # Ensure default provider is claude and API key returns None
     mock_config.get.return_value = "claude"
-    
+
     def mock_get_api_key_side_effect(provider=None):
         # Debug: Return None for claude specifically
         if provider == "claude" or provider is None:
             return None
         return f"test-{provider}-key-123"
-    
+
     mock_config.get_api_key.side_effect = mock_get_api_key_side_effect
 
     with patch("tarotcli.ai.get_config", return_value=mock_config):
         result = interpret_reading_sync(sample_reading)
 
-        assert result == sample_reading.baseline_interpretation
+        assert result == sample_reading.static_interpretation
 
 
 def test_interpret_reading_sync_passes_kwargs(sample_reading, mock_config):
@@ -225,12 +231,11 @@ def test_interpret_reading_sync_passes_kwargs(sample_reading, mock_config):
     mock_response = MagicMock()
     mock_response.choices = [MagicMock(message=MagicMock(content="Test result"))]
 
-    with patch("tarotcli.ai.get_config", return_value=mock_config), \
-         patch("tarotcli.ai.acompletion", return_value=mock_response):
-        
-        result = interpret_reading_sync(
-            sample_reading, provider="ollama", timeout=45
-        )
+    with (
+        patch("tarotcli.ai.get_config", return_value=mock_config),
+        patch("tarotcli.ai.acompletion", return_value=mock_response),
+    ):
+        result = interpret_reading_sync(sample_reading, provider="ollama", timeout=45)
 
         assert result == "Test result"
 
