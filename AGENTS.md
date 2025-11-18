@@ -22,11 +22,14 @@
 - 78-card Rider-Waite-Smith deck with authoritative 1911 Waite imagery descriptions
 - Three spread types: Single Card, Three Card (Past/Present/Future), Celtic Cross (10 cards)
 - Multi-provider AI interpretation (Claude, Ollama, OpenAI, OpenRouter)
-- Baseline interpretation (static card meanings, works offline)
+- Static interpretation (non-AI card meanings, works offline)
 - Interactive CLI (questionary prompts) and argument mode
 - Three-tier configuration (environment → user config → bundled defaults)
 - JSON and markdown output formats
 - Graceful degradation (readings never fail)
+- Lightweight reading persistence (JSONL storage, v0.5.0+)
+- Reading history retrieval (v0.5.0+)
+- Rich terminal display with text wrapping (v0.6.0+)
 
 **Development Standards**:
 - Foundation-first methodology (each milestone proven before next)
@@ -38,7 +41,8 @@
 ### Out of Scope (Explicitly Excluded)
 
 **Features NOT being added**:
-- Reading history persistence/retrieval (database, search, filtering)
+- Database persistence (file-based JSONL storage only)
+- Advanced search or filtering (basic history retrieval only)
 - Statistical analysis or pattern recognition
 - Multiple tarot decks (Thoth, Marseille, etc.)
 - Astrological integration
@@ -48,7 +52,7 @@
 - Voice interface
 - RAG/vector search/embeddings
 
-**Rationale**: Previous version (371 commits) abandoned due to scope creep. Current version demonstrates ability to ship working MVP and maintain focus.
+**Rationale**: Previous version (371 commits) abandoned due to scope creep. Current version demonstrates ability to ship working MVP and maintain focus. Persistence is being added in Milestone 5 but kept minimal (JSONL files, no database complexity).
 
 ---
 
@@ -259,6 +263,50 @@ AI prompt includes tailored framing for each `FocusArea`:
 - **Spiritual**: Consciousness exploration, higher purpose, existential questions
 - **General**: Holistic life guidance without specific domain focus
 
+### Hermeneutical Layers: What "Interpretation" Means
+
+**Terminology Problem**: Both `interpretation` and `static_interpretation` fields use "interpretation" in their names, which can mislead developers about what the AI actually does.
+
+**The Three-Layer Framework**:
+
+1. **Waite's Source Material (1911)** - Primary Interpretation Layer
+   - A.E. Waite's *Pictorial Key to the Tarot* interprets RWS deck symbolism
+   - Provides traditional divinatory meanings for each card
+   - This is already **interpretation** - Waite interpreted the symbolic imagery
+   - Our dataset (`tarot_cards_RW.jsonl`) preserves these authoritative 1911 interpretations
+
+2. **Static Interpretation** (`static_interpretation` field) - Structured Presentation
+   - Assembles Waite's pre-existing interpretations by spread position
+   - **No new interpretation occurs** - just formatting and assembly
+   - Example: "Past: The Magician (Upright)\nSkill, diplomacy..."
+   - Think: "What Waite said about these cards, organized by reading structure"
+
+3. **AI Synthesis** (`interpretation` field) - Hybrid Narrative Transformation
+   - Draws from **both** AI training data knowledge AND Waite's source material
+   - Waite material provides specific symbolic grounding (imagery, traditional meanings)
+   - Training data contributes broader tarot tradition and narrative fluency
+   - **Not mystical divination** - informed interpretation built from multiple knowledge sources
+   - The result: Authoritative grounding + accessible narrative + traditional context
+
+**Why This Matters**:
+
+- ✅ **Epistemological Honesty**: AI integrates multiple sources, with Waite as authoritative grounding
+- ✅ **Practical Quality**: Combination of historical source + traditional knowledge = richer interpretations
+- ✅ **Educational Value**: Users can compare static (pure Waite) vs AI (hybrid synthesis) via `lookup` command
+- ✅ **Architectural Flexibility**: System supports swapping/adding other source datasets (Thoth, Marseille, custom)
+- ✅ **User Choice**: Three modes available (static-only, AI synthesis, comparison between both)
+
+**Field Naming Decision**:
+
+We maintain `interpretation` and `static_interpretation` despite ambiguity because:
+- API stability (no breaking changes to field names)
+- User intuitiveness (`interpretation` is what users expect to see)
+- Comprehensive documentation (module docstrings, README) clarifies the distinction
+
+The code's module-level documentation (`models.py`) and this section provide the hermeneutical framework for anyone reading the codebase.
+
+---
+
 ### LiteLLM Integration
 
 **Async implementation** (future-proofed for web API):
@@ -373,6 +421,45 @@ def function_name(arg1: str, arg2: int) -> dict:
         - Technical consideration: Edge case handling
     """
 ```
+
+**Documentation Language Standards**:
+
+Use human, varied language in documentation and docstrings. Avoid repetitive AI buzzwords that make text sound machine-generated.
+
+**Prefer varied, accessible terms**:
+- "draws on" / "pulls from" / "works with" (instead of repetitive "synthesizes")
+- "combines" / "integrates" / "weaves together" (natural variety)
+- "informed by" / "grounded in" / "contextualizes" (academic alternatives)
+- "constructs" / "builds upon" (foundation metaphors)
+
+**Language variability principle**:
+- First mention: Use most accessible term ("draws on")
+- Second mention: Vary with simple alternative ("combines")
+- Third mention: Academic but clear ("integrates")
+- Throughout: Maintain human rhythm through synonym variation
+
+**Why this matters**:
+- Token-efficient terms like "synthesizes" repeated 5+ times sound AI-generated
+- Natural writing uses varied vocabulary even for same concept
+- Human readers expect rhetorical variation, not robotic consistency
+- Academic writing traditionally employs elegant variation
+
+**Apply to**:
+- Module docstrings (`models.py`, `ai.py`, etc.)
+- Function/class docstrings
+- README.md and AGENTS.md documentation
+- Help text and CLI descriptions
+- Comments explaining complex logic
+
+**Don't apply to**:
+- Variable names (consistency critical)
+- Function names (clarity over variety)
+- Error messages (consistency aids debugging)
+- Test names (explicit over elegant)
+
+This standard maintains professional quality while sounding human-authored rather than LLM-generated.
+
+---
 
 **Error Handling**:
 - All functions that could fail must handle errors gracefully
@@ -562,74 +649,103 @@ git push origin v0.4.0
 
 ---
 
-### Milestone 5 (v0.5.0) - Reading Export **[PRIORITY 2]**
+### Milestone 5 (v0.5.0) - Reading Persistence **[IN PROGRESS]**
 
 **Scope**:
-- Save readings to configurable directory
-- Timestamped filenames: `reading_2025-11-07_14-30-22.md`
-- Markdown and JSON formats
-- Config option: `output.readings_directory` (default: `~/tarot_readings/`)
+- JSONL append-only storage for reading history
+- Default location: `~/.local/share/tarotcli/readings.jsonl` (XDG standard)
+- Config option: `output.save_readings` (boolean, default: `false`)
+- Config option: `output.readings_dir` (path override, default: `null` = use XDG)
+- New command: `tarotcli history` to view past readings
+- Auto-save after each reading when enabled (no extra command needed)
+
+**Implementation Details**:
+- Storage format: One reading per line (JSONL) matching `reading.model_dump_json()`
+- Retrieval: Deserialize JSONL lines into `Reading` objects
+- Display: Reuse existing `display_reading()` function for markdown output
+- JSON option: `tarotcli history --json` for scripting/automation
+- Graceful degradation: If write fails, warn and continue (never blocks readings)
 
 **Explicitly NOT included**:
-- Database persistence
-- Reading history retrieval
+- Database persistence (just files)
 - Search or filtering functionality
 - Statistics or pattern analysis
+- Markdown storage (JSONL only - structured and parseable)
 
 **Acceptance Criteria**:
-- `tarotcli read --save` writes file to configured directory
-- Filename includes timestamp for uniqueness
-- Markdown format includes formatted card display
-- JSON format matches `reading.model_dump_json()` structure
-- User can specify custom directory via config or CLI flag
+- `save_readings: true` in config enables auto-save ✅
+- Readings append to `~/.local/share/tarotcli/readings.jsonl` ✅
+- `tarotcli history` shows last 10 readings (markdown format) ✅
+- `tarotcli history --last N` shows last N readings ✅
+- `tarotcli history --json` outputs JSON array for scripting ✅
+- File corruption on crash doesn't affect new writes (append-only) ✅
+- Tests for `ReadingPersistence` class with 100% coverage ✅
 
-**Estimated effort**: 2-3 hours (1 hour implementation, 1 hour testing, 30 min docs)
+**Estimated effort**: 3-4 hours (2 hours implementation, 1.5 hours testing, 30 min docs)
 
 ---
 
-### Card Imagery Toggle (v0.6.0)
+### Milestone 6 (v0.6.0) - Rich Display Enhancement **[PLANNED]**
 
 **Scope**:
-- CLI flag: `--show-imagery` includes Waite descriptions in output
-- Default behavior unchanged (effective meanings only)
-- Helps users understand AI's symbolic synthesis
-- Educational feature for tarot learning
+- Integrate Rich library for terminal UI improvements
+- Add `--show-imagery` flag to `tarotcli read` command
+- Enhance both live readings and history display with Rich formatting
+- Improve text wrapping for long AI interpretations
+
+**Phase 1: Rich Integration**:
+- Replace plain `print()` with Rich Console for proper text wrapping
+- Add color-coded sections (headers, cards, interpretations)
+- Terminal-aware width (adapts to user's terminal size)
+- Rich tables for card layout display
+- Markdown rendering for AI interpretations (if Claude uses formatting)
+- Panels for visual separation of sections
+
+**Phase 2: Imagery Flag Extension**:
+- CLI flag: `tarotcli read --show-imagery` includes Waite descriptions
+- Config option: `display.show_imagery: true` (default: `false`)
+- Display imagery in Rich panels with proper wrapping
+- Extends existing `lookup --show-imagery` pattern to full readings
+
+**Benefits**:
+- Automatic text wrapping prevents interpretation overflow on narrow terminals
+- Color-coding improves readability (card positions, orientations)
+- Tables provide cleaner card layout than current list format
+- Consistent with Rich usage in modern Python CLIs (Typer, Poetry, etc.)
 
 **Explicitly NOT included**:
-- Generating new imagery descriptions
+- Generating new imagery descriptions (dataset is authoritative)
 - Image display (text descriptions only)
 - Imagery-based search or filtering
+- Breaking changes to existing output (preserve `--json` behavior)
 
-**Implementation**:
+**Implementation Preview**:
 ```bash
-# Default (current behavior)
+# Default (enhanced with Rich)
 tarotcli read --spread three
+# → Rich panels, color headers, wrapped text, tables
 
 # With imagery descriptions
 tarotcli read --spread three --show-imagery
-```
+# → All Rich enhancements + Waite imagery in card panels
 
-**Output difference**:
-```
-Default:
-  Past: The Magician ↑ Upright
-  Meaning: Skill, diplomacy, address, subtlety
-
-With --show-imagery:
-  Past: The Magician ↑ Upright
-  Meaning: Skill, diplomacy, address, subtlety
-  Imagery: A youthful figure in the robe of a magician, having the 
-           countenance of divine Apollo, with smile of confidence...
+# History also benefits
+tarotcli history --last 3
+# → Rich formatting for past readings
 ```
 
 **Acceptance Criteria**:
-- `tarotcli read --show-imagery` includes descriptions in reading display
-- `tarotcli lookup "card" --show-imagery` shows imagery for single card
-- Config option to make imagery default: `display.show_imagery: true`
-- Preserves minimalist default display
-- Documentation explains Waite description source
+- `rich` added to dependencies in pyproject.toml ✅
+- `display_reading()` refactored to use Rich Console ✅
+- Text wraps to terminal width (no more overflow) ✅
+- `tarotcli read --show-imagery` includes Waite descriptions ✅
+- `tarotcli history` uses Rich formatting ✅
+- `--json` output unchanged (Rich only affects markdown display) ✅
+- Config option `display.show_imagery` works ✅
+- All existing tests pass (display logic isolated) ✅
+- UI remains minimal and elegant (no over-styling) ✅
 
-**Estimated effort**: 1 hour (flag already exists in lookup, extend to read command)
+**Estimated effort**: 2-3 hours (1.5 hours Rich integration, 1 hour imagery flag, 30 min testing)
 
 ---
 
@@ -772,6 +888,6 @@ tarotcli/
 
 ---
 
-**Last Updated**: November 8, 2025 (v0.4.5)
+**Last Updated**: November 18, 2025 (v0.4.5 → v0.5.0 planning)
 **Maintainer**: melbourne-quantum-dev
 **Repository**: Foundation-first development, professional git hygiene, comprehensive testing
