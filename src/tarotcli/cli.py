@@ -7,6 +7,8 @@ Integrates with deck operations, spread layouts, AI interpretation, and configur
 Commands:
     read: Perform tarot readings (interactive or CLI args)
     lookup: Look up meanings for specific cards (physical deck companion)
+    history: View past readings from JSONL storage
+    clear-history: Delete reading history (privacy/cleanup)
     version: Display current version
     list-spreads: Show available spread types
     config-info: Display current configuration
@@ -26,6 +28,7 @@ Example:
 """
 
 import typer
+from pathlib import Path
 from typing import Optional
 from tarotcli.config import get_config
 from tarotcli.deck import TarotDeck, lookup_card
@@ -33,6 +36,7 @@ from tarotcli.spreads import get_spread
 from tarotcli.models import FocusArea
 from tarotcli.ai import interpret_reading_sync
 from tarotcli.ui import gather_reading_inputs, display_reading
+from tarotcli.persistence import ReadingPersistence
 
 app = typer.Typer(
     name="tarotcli", help="Minimalist tarot reading CLI with optional AI interpretation"
@@ -141,6 +145,12 @@ def read(
                 err=True,
             )
 
+    # Auto-save reading if enabled
+    config = get_config()
+    if config.get("output.save_readings", False):
+        persistence = ReadingPersistence()
+        persistence.save(reading)  # Gracefully fails if error occurs
+
     # Output
     if json_output:
         print(reading.model_dump_json(indent=2))
@@ -208,6 +218,163 @@ def lookup(
 
 
 @app.command()
+def history(
+    last: int = typer.Option(
+        10, "--last", "-n", help="Number of recent readings to show (default: 10)"
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output as JSON array instead of markdown"
+    ),
+):
+    """View reading history.
+
+    Displays past readings from JSONL storage. Requires output.save_readings
+    to be enabled in config.yaml.
+
+    Args:
+        last: Number of recent readings to show. Default 10.
+        json_output: Output as JSON array instead of markdown.
+
+    Example:
+        tarotcli history --last 5
+        tarotcli history --json
+    """
+    config = get_config()
+
+    # Check if persistence is enabled
+    if not config.get("output.save_readings", False):
+        typer.echo(
+            "📖 Reading persistence is disabled.\n"
+            "💡 Enable it in config.yaml: output.save_readings: true\n",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    # Load readings
+    persistence = ReadingPersistence()
+    readings = persistence.load_last(last)
+
+    if not readings:
+        typer.echo("📭 No readings found in history.\n")
+        typer.echo("💡 Perform readings with save_readings enabled to build history.\n")
+        return
+
+    # Output
+    if json_output:
+        # Export as JSON array
+        import json
+
+        json_data = [r.model_dump() for r in readings]
+        print(json.dumps(json_data, indent=2, default=str))
+    else:
+        # Display each reading using markdown format
+        typer.echo(f"\n📚 Showing last {len(readings)} reading(s):\n")
+        typer.echo("=" * 60)
+        for i, reading in enumerate(readings, start=1):
+            typer.echo(f"\n[Reading {i} - {reading.timestamp}]")
+            display_reading(reading)
+            if i < len(readings):  # Don't add separator after last reading
+                typer.echo("=" * 60)
+
+
+@app.command()
+def clear_history(
+    last: int = typer.Option(
+        None, "--last", "-n", help="Delete last N readings (leave empty for all)"
+    ),
+    all: bool = typer.Option(
+        False, "--all", help="Delete all readings (requires confirmation)"
+    ),
+):
+    """Delete reading history (privacy/cleanup).
+
+    Provides granular control over deletion:
+    - Delete last N readings: --last N
+    - Delete all readings: --all
+
+    All operations require confirmation to prevent accidental deletion.
+
+    Args:
+        last: Number of recent readings to delete. If None and not --all, prompts user.
+        all: Delete all readings (requires confirmation).
+
+    Example:
+        tarotcli clear-history --last 5    # Delete last 5 readings
+        tarotcli clear-history --all       # Delete all readings
+    """
+    config = get_config()
+
+    # Check if persistence is enabled
+    if not config.get("output.save_readings", False):
+        typer.echo(
+            "📖 Reading persistence is disabled.\n"
+            "💡 No history to delete (save_readings: false in config).\n",
+            err=True,
+        )
+        raise typer.Exit(0)
+
+    persistence = ReadingPersistence()
+    readings = persistence.load_all()
+
+    if not readings:
+        typer.echo("📭 No readings found in history. Nothing to delete.\n")
+        return
+
+    # Determine deletion scope
+    if all:
+        # Delete all readings
+        typer.echo(f"\n⚠️  You are about to delete ALL {len(readings)} reading(s).\n")
+        confirm = typer.confirm("This action cannot be undone. Continue?", default=False)
+
+        if not confirm:
+            typer.echo("❌ Deletion cancelled.\n")
+            return
+
+        success = persistence.clear_all()
+        if success:
+            typer.echo(f"✅ Deleted all {len(readings)} reading(s).\n")
+        else:
+            typer.echo("❌ Failed to delete readings. Check error messages above.\n")
+            raise typer.Exit(1)
+
+    elif last is not None:
+        # Delete last N readings
+        if last <= 0:
+            typer.echo("❌ Error: --last must be a positive number.\n", err=True)
+            raise typer.Exit(1)
+
+        actual_delete = min(last, len(readings))
+        typer.echo(
+            f"\n⚠️  You are about to delete the last {actual_delete} reading(s).\n"
+        )
+        confirm = typer.confirm("This action cannot be undone. Continue?", default=False)
+
+        if not confirm:
+            typer.echo("❌ Deletion cancelled.\n")
+            return
+
+        success = persistence.delete_last(last)
+        if success:
+            typer.echo(f"✅ Deleted last {actual_delete} reading(s).\n")
+        else:
+            typer.echo("❌ Failed to delete readings. Check error messages above.\n")
+            raise typer.Exit(1)
+
+    else:
+        # No option specified - show usage
+        typer.echo(
+            "❌ Error: Specify deletion scope:\n"
+            "  - Delete last N readings: --last N\n"
+            "  - Delete all readings: --all\n\n"
+            "Example:\n"
+            "  tarotcli clear-history --last 5\n"
+            "  tarotcli clear-history --all\n",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+
+@app.command()
 def version():
     """Display TarotCLI version."""
     from tarotcli import __version__
@@ -233,15 +400,18 @@ def config_info():
     Displays current provider, model, and data path for debugging
     and configuration verification.
     """
+    from platformdirs import user_config_dir
+
     config = get_config()
     provider = config.get("models.default_provider", "claude")
     model = config.get(f"models.providers.{provider}.model", "not configured")
+    config_path = Path(user_config_dir("tarotcli", appauthor=False)) / "config.yaml"
 
     typer.echo("\n🔮 TarotCLI Configuration\n")
     typer.echo(f"  Default Provider: {provider}")
     typer.echo(f"  Model: {model}")
     typer.echo(f"  Data Path: {config.get_data_path('tarot_cards_RW.jsonl')}")
-    typer.echo("\n💡 Edit ~/.config/tarotcli/config.yaml to customize\n")
+    typer.echo(f"\n💡 Edit {config_path} to customize\n")
 
 
 def main():
