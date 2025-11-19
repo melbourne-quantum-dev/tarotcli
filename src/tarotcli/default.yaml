@@ -21,9 +21,9 @@ models:
       # No API key needed for local models
 
 output:
-  format: "markdown"  # Options: markdown, json, plain
-  save_readings: false
-  readings_dir: null  # null = don't save to file
+  format: "markdown"  # Display format for 'tarotcli read' (does NOT affect storage)
+  save_readings: false  # Enable to auto-save readings (always stored as JSONL)
+  readings_dir: null  # null = use platform default (Linux/macOS/Windows)
 
 data:
   deck_path: "tarot_cards_RW.jsonl"  # Relative to data/ directory

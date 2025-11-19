@@ -3,8 +3,10 @@ Tests for configuration management system.
 
 Tests the three-tier configuration hierarchy:
 1. Environment variables (highest priority)
-2. User config files (project root or ~/.config)
+2. User config files (project root or platform-specific user config dir)
 3. Bundled defaults (fallback)
+
+Platform-specific paths handled via platformdirs library.
 """
 
 import os
@@ -312,6 +314,68 @@ class TestGetDataPath:
 
         path = config.get_data_path("tarot_cards_RW.jsonl")
         assert path.parent == custom_dir
+
+
+class TestGetReadingsPath:
+    """Test readings file path resolution with platformdirs."""
+
+    def test_get_readings_path_returns_absolute_path(self, clean_environment):
+        """Should return absolute Path object."""
+        config = Config()
+
+        path = config.get_readings_path()
+        assert isinstance(path, Path)
+        assert path.is_absolute()
+
+    def test_get_readings_path_ends_with_readings_jsonl(self, clean_environment):
+        """Should resolve to readings.jsonl filename."""
+        config = Config()
+
+        path = config.get_readings_path()
+        assert path.name == "readings.jsonl"
+
+    def test_get_readings_path_uses_platformdirs(self, clean_environment):
+        """Should use platform-specific directory (via platformdirs)."""
+        config = Config()
+
+        path = config.get_readings_path()
+        # The parent directory should contain 'tarotcli'
+        assert "tarotcli" in str(path)
+
+    def test_get_readings_path_with_env_override(
+        self, clean_environment, monkeypatch, tmp_path
+    ):
+        """Should respect TAROTCLI_OUTPUT_READINGS_DIR environment variable."""
+        config = Config()
+
+        custom_dir = tmp_path / "custom_readings"
+        custom_dir.mkdir()
+        monkeypatch.setenv("TAROTCLI_OUTPUT_READINGS_DIR", str(custom_dir))
+
+        path = config.get_readings_path()
+        assert path.parent == custom_dir
+        assert path.name == "readings.jsonl"
+
+    def test_get_readings_path_with_config_override(
+        self, clean_environment, monkeypatch, tmp_path
+    ):
+        """Should respect output.readings_dir config setting."""
+        # Mock config to return custom readings_dir
+        custom_dir = tmp_path / "config_readings"
+        custom_dir.mkdir()
+
+        def mock_get(key, default=None):
+            if key == "output.readings_dir":
+                return str(custom_dir)
+            return default
+
+        config = Config()
+        # Patch the get method to return our custom dir
+        monkeypatch.setattr(config, "get", mock_get)
+
+        path = config.get_readings_path()
+        assert path.parent == custom_dir
+        assert path.name == "readings.jsonl"
 
 
 class TestSingletonPattern:

@@ -15,6 +15,7 @@ from typing import Any, Optional, cast
 
 import yaml
 from dotenv import load_dotenv
+from platformdirs import user_data_dir, user_config_dir
 
 # Load .env file if present (for development workflow)
 load_dotenv()
@@ -74,16 +75,19 @@ class Config:
 
         Searches in priority order, returning the first config found. This dual
         approach supports both development workflows (project root) and installed
-        package usage (XDG dotfiles).
+        package usage (platform-specific user config directories).
 
         Search priority:
         1. ./config.yaml (project root - for editable install development)
-        2. ~/.config/tarotcli/config.yaml (user dotfiles - for installed package)
+        2. Platform-specific user config directory (for installed package):
+           - Linux: ~/.config/tarotcli/config.yaml
+           - macOS: ~/Library/Application Support/tarotcli/config.yaml
+           - Windows: C:\\Users\\<user>\\AppData\\Roaming\\tarotcli\\config.yaml
 
         Why this pattern:
             - Developers work with project root config during development
-            - End users install package and use ~/.config/tarotcli/config.yaml
-            - Same codebase supports both workflows seamlessly
+            - End users install package and use platform-appropriate config location
+            - Same codebase supports both workflows seamlessly across all platforms
 
         Returns:
             dict: User configuration or empty dict if no config found.
@@ -91,9 +95,12 @@ class Config:
         # Get project root (3 levels up from src/tarotcli/config.py)
         project_root = Path(__file__).parent.parent.parent
 
+        # Get platform-appropriate config directory
+        user_config_dir_path = Path(user_config_dir("tarotcli", appauthor=False))
+
         user_config_paths = [
             project_root / "config.yaml",  # Development
-            Path.home() / ".config" / "tarotcli" / "config.yaml",  # Installed
+            user_config_dir_path / "config.yaml",  # Installed (platform-specific)
         ]
 
         for config_path in user_config_paths:
@@ -341,6 +348,54 @@ class Config:
         # Get project root (3 levels up from src/tarotcli/config.py)
         project_root = Path(__file__).parent.parent.parent
         return project_root / "data" / filename
+
+    def get_readings_path(self) -> Path:
+        """Get absolute path to readings storage file.
+
+        Provides cross-platform path resolution for reading persistence, using
+        platformdirs to ensure correct locations on Linux, macOS, and Windows.
+
+        Resolution order:
+        1. Environment variable: TAROTCLI_OUTPUT_READINGS_DIR (highest priority)
+        2. Config file: output.readings_dir (if not null)
+        3. Platform default: Uses platformdirs for OS-appropriate location
+           - Linux: ~/.local/share/tarotcli/readings.jsonl
+           - macOS: ~/Library/Application Support/tarotcli/readings.jsonl
+           - Windows: C:\\Users\\<user>\\AppData\\Local\\tarotcli\\readings.jsonl
+
+        The platform-specific defaults ensure readings are stored in the appropriate
+        user data directory on each OS, separate from configuration files.
+
+        Returns:
+            Path: Absolute path to readings.jsonl file.
+
+        Example:
+            >>> config.get_readings_path()
+            PosixPath('/home/user/.local/share/tarotcli/readings.jsonl')
+
+            >>> # Custom location via config
+            >>> # output.readings_dir: "/custom/path"
+            >>> config.get_readings_path()
+            PosixPath('/custom/path/readings.jsonl')
+
+            >>> # Environment override
+            >>> os.environ["TAROTCLI_OUTPUT_READINGS_DIR"] = "/tmp/tarot"
+            >>> config.get_readings_path()
+            PosixPath('/tmp/tarot/readings.jsonl')
+        """
+        # Check environment variable first
+        env_dir = os.getenv("TAROTCLI_OUTPUT_READINGS_DIR")
+        if env_dir:
+            return Path(env_dir) / "readings.jsonl"
+
+        # Check config file
+        config_dir = self.get("output.readings_dir")
+        if config_dir is not None:
+            return Path(config_dir) / "readings.jsonl"
+
+        # Default to platform-appropriate directory
+        data_dir = user_data_dir("tarotcli", appauthor=False)
+        return Path(data_dir) / "readings.jsonl"
 
 
 # Singleton pattern for global config instance

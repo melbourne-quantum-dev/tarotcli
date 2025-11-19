@@ -26,11 +26,26 @@ models:
       # Install: curl -fsSL https://ollama.com/install.sh | sh
       # Pull model: ollama pull deepseek-r1:8b
 
-# Future functionality: Output Configuration
-# output:
-#  format: "markdown"        # Options: markdown, json, plain
-#  save_readings: true       # Save readings to file?
-#  readings_dir: "~/Documents/tarot_readings"  # Where to save readings
+# Output and Persistence Configuration
+output:
+  format: "markdown"        # Display format for 'tarotcli read' command
+                            # Options: markdown, json
+                            # Note: Does NOT affect storage format (always JSONL)
+
+  save_readings: false      # Enable to auto-save readings after each draw
+                            # Storage format: JSONL (one reading per line)
+                            # Retrieve with: tarotcli history
+                            #
+                            # PRIVACY: Readings may contain personal information
+                            # (questions, timestamps, AI interpretations).
+                            # Files stored locally, not synced to cloud.
+                            # Delete history: tarotcli clear-history --all
+
+  readings_dir: null        # null = use platform default (recommended)
+                            # Platform defaults:
+                            #   Linux: ~/.local/share/tarotcli
+                            #   macOS: ~/Library/Application Support/tarotcli
+                            #   Windows: %LOCALAPPDATA%\tarotcli
 
 # Advanced: Custom deck path (rarely needed)
 # data:
