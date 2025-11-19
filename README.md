@@ -171,6 +171,48 @@ tarotcli lookup "ace"
 #   - Ace of Swords
 ```
 
+### Reading History
+
+TarotCLI can save your readings for future reference. Enable persistence in your config file:
+
+```yaml
+# config.yaml
+output:
+  save_readings: true  # Enable auto-save after each reading
+```
+
+View your reading history:
+
+```bash
+# Show last 10 readings (default)
+tarotcli history
+
+# Show last 5 readings
+tarotcli history --last 5
+
+# Export history as JSON for scripting
+tarotcli history --json
+```
+
+Storage locations (platform-specific):
+- **Linux**: `~/.local/share/tarotcli/readings.jsonl`
+- **macOS**: `~/Library/Application Support/tarotcli/readings.jsonl`
+- **Windows**: `C:\Users\<user>\AppData\Local\tarotcli\readings.jsonl`
+
+**Privacy & Cleanup:**
+
+Delete reading history with granular control:
+
+```bash
+# Delete last 5 readings (with confirmation)
+tarotcli clear-history --last 5
+
+# Delete all readings (with confirmation)
+tarotcli clear-history --all
+```
+
+**Note**: Readings may contain personal information (questions, timestamps, AI interpretations). All data is stored locally on your device, not synced to cloud services.
+
 ### Other Commands
 
 ```bash
@@ -213,7 +255,10 @@ Customize provider settings and output preferences:
 
 **For editable install** (development): Copy `config.example.yaml` to `./config.yaml` in project root
 
-**For installed package**: Copy to `~/.config/tarotcli/config.yaml`
+**For installed package** (platform-specific):
+- **Linux**: `~/.config/tarotcli/config.yaml`
+- **macOS**: `~/Library/Application Support/tarotcli/config.yaml`
+- **Windows**: `C:\Users\<user>\AppData\Roaming\tarotcli\config.yaml`
 
 Example configuration:
 
@@ -234,6 +279,12 @@ models:
             model: claude-haiku-4-5-20251001
             temperature: 0.7
             max_tokens: 1500
+
+# Output and persistence settings
+output:
+    format: markdown  # Options: markdown, json
+    save_readings: false  # Enable to auto-save readings
+    readings_dir: null  # null = use platform-specific default (recommended)
 ```
 
 See `config.example.yaml` for complete reference with all available options.
@@ -325,9 +376,11 @@ The tool's strength isn't forcing exclusive adherence to one source - it's provi
 Built as response to algorithmic collective tarot readings on YouTube. Provides:
 
 1. **Autonomy**: Personal readings without platform dependency
-2. **Authority**: Waite's original text, not SEO-optimised interpretations  
+2. **Authority**: Waite's original text, not SEO-optimised interpretations
 3. **Privacy**: Local readings, no data collection
 4. **Education**: Learn tarot using authoritative source material
+
+**Metaphysical assumption**: The project treats computational operations as structurally equivalent to working with traditional cards. Both `random.shuffle()` and physical shuffling introduce controlled entropy within bounded possibility space. Whether the output is meaningful or merely random is entirely dependent on the user and whether they choose to engage the reading with intention.
 
 Also serves as portfolio piece demonstrating:
 
@@ -335,8 +388,6 @@ Also serves as portfolio piece demonstrating:
 - Foundation-first methodology (each layer proven before next)
 - Graceful degradation patterns (never fails)
 - Professional Python practices (Pydantic, pytest, conventional commits)
-
-*But there's more happening here than practical utility suggests.*
 
 ## Architecture
 
@@ -351,10 +402,6 @@ Layer 5: CLI interface               → Interactive + argument modes
 ```
 
 Each layer works independently. AI is optional, not required.
-
-**Architectural principle**: The code implements liturgical structure—it serves the same function as ritual in traditional practice. It doesn't matter that you're calling `random.shuffle()` instead of physically shuffling cards. Both operations serve identical purposes: introduce controlled entropy within bounded possibility space.
-
-TarotCLI is a **resonance interface**: computational system that implements structured constraints specifically to enable unstructured emergence. The code doesn't generate meaning—it creates the conditions under which meaning can emerge through interaction.
 
 ## Development
 

@@ -4,11 +4,12 @@
 
 **Purpose**: Minimalist tarot reading CLI with optional AI interpretation. Foundation-first architecture ensuring core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.4.5 (Milestone 4.5 Complete)
-- **Test Coverage**: Coverage is at 88% overall (103/103 passing). The only low coverage is `ui.py` at 23%. This is expected since it contains interactive questionary prompts which are harder to test and already validated through integration testing.
+**Current Status**: v0.5.0 (Milestone 5 Complete)
+- **Test Coverage**: Coverage is at 83% overall (120/120 passing). The low coverage areas are expected: `ui.py` at 23% (interactive prompts), `cli.py` at 78% (some command paths untested).
 - **Production Ready**: CLI fully functional with interactive and argument modes
 - **Multi-Provider Support**: Claude, Ollama (local), OpenAI, OpenRouter
-- **Lookup Feature**: Show meaning of any card in console via typer commands
+- **Reading Persistence**: Auto-save readings to JSONL storage, view history
+- **Cross-Platform**: Uses platformdirs for proper config/data paths on Linux, macOS, Windows
 
 **Key Achievement**: Professional Python CLI demonstrating scope discipline, test-driven development, and graceful degradation patterns. Portfolio piece showcasing ability to ship working MVP without overengineering.
 
@@ -25,11 +26,11 @@
 - Static interpretation (non-AI card meanings, works offline)
 - Interactive CLI (questionary prompts) and argument mode
 - Three-tier configuration (environment → user config → bundled defaults)
+- Cross-platform support (platformdirs for Linux, macOS, Windows compatibility)
 - JSON and markdown output formats
 - Graceful degradation (readings never fail)
-- Lightweight reading persistence (JSONL storage, v0.5.0+)
-- Reading history retrieval (v0.5.0+)
-- Rich terminal display with text wrapping (v0.6.0+)
+- Lightweight reading persistence (JSONL append-only storage)
+- Reading history retrieval (`tarotcli history` command)
 
 **Development Standards**:
 - Foundation-first methodology (each milestone proven before next)
@@ -649,13 +650,16 @@ git push origin v0.4.0
 
 ---
 
-### Milestone 5 (v0.5.0) - Reading Persistence **[IN PROGRESS]**
+### Milestone 5 (v0.5.0) - Reading Persistence ✅
 
 **Scope**:
 - JSONL append-only storage for reading history
-- Default location: `~/.local/share/tarotcli/readings.jsonl` (XDG standard)
+- Cross-platform paths using `platformdirs`:
+  - Linux: `~/.local/share/tarotcli/readings.jsonl`
+  - macOS: `~/Library/Application Support/tarotcli/readings.jsonl`
+  - Windows: `C:\Users\<user>\AppData\Local\tarotcli\readings.jsonl`
 - Config option: `output.save_readings` (boolean, default: `false`)
-- Config option: `output.readings_dir` (path override, default: `null` = use XDG)
+- Config option: `output.readings_dir` (path override, default: `null`)
 - New command: `tarotcli history` to view past readings
 - Auto-save after each reading when enabled (no extra command needed)
 
@@ -665,6 +669,7 @@ git push origin v0.4.0
 - Display: Reuse existing `display_reading()` function for markdown output
 - JSON option: `tarotcli history --json` for scripting/automation
 - Graceful degradation: If write fails, warn and continue (never blocks readings)
+- Cross-platform support: `platformdirs` for user config and data directories
 
 **Explicitly NOT included**:
 - Database persistence (just files)
@@ -672,16 +677,23 @@ git push origin v0.4.0
 - Statistics or pattern analysis
 - Markdown storage (JSONL only - structured and parseable)
 
-**Acceptance Criteria**:
+**Deliverables (All Complete)**:
 - `save_readings: true` in config enables auto-save ✅
-- Readings append to `~/.local/share/tarotcli/readings.jsonl` ✅
+- Platform-specific storage paths (Linux/macOS/Windows) ✅
 - `tarotcli history` shows last 10 readings (markdown format) ✅
 - `tarotcli history --last N` shows last N readings ✅
 - `tarotcli history --json` outputs JSON array for scripting ✅
 - File corruption on crash doesn't affect new writes (append-only) ✅
-- Tests for `ReadingPersistence` class with 100% coverage ✅
+- Tests for `ReadingPersistence` class: 22 tests, 86% coverage ✅
+- Cross-platform config paths using `platformdirs` ✅
+- Updated `tarotcli config-info` to show platform-specific paths ✅
+- **Privacy features**: `tarotcli clear-history` with granular deletion ✅
+  - Delete last N readings: `--last N`
+  - Delete all readings: `--all`
+  - Confirmation prompts for all destructive operations
+  - Privacy warnings in docs and config
 
-**Estimated effort**: 3-4 hours (2 hours implementation, 1.5 hours testing, 30 min docs)
+**Actual effort**: ~4 hours (implementation, testing, docs, platformdirs, privacy features)
 
 ---
 
@@ -888,6 +900,6 @@ tarotcli/
 
 ---
 
-**Last Updated**: November 18, 2025 (v0.4.5 → v0.5.0 planning)
+**Last Updated**: November 18, 2025 (v0.5.0 - Reading Persistence Complete)
 **Maintainer**: melbourne-quantum-dev
 **Repository**: Foundation-first development, professional git hygiene, comprehensive testing
