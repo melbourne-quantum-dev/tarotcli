@@ -158,6 +158,24 @@ def read(
     # Load deck using config system
     deck = TarotDeck.load_default()  # Uses config.get_data_path()
 
+    # Handle ctx.invoke() passing OptionInfo objects instead of None
+    # This happens when called from main_menu without explicit parameters
+    from typer.models import OptionInfo
+    if isinstance(spread, OptionInfo):
+        spread = None
+    if isinstance(focus, OptionInfo):
+        focus = None
+    if isinstance(question, OptionInfo):
+        question = None
+    if isinstance(no_ai, OptionInfo):
+        no_ai = False
+    if isinstance(provider, OptionInfo):
+        provider = None
+    if isinstance(json_output, OptionInfo):
+        json_output = False
+    if isinstance(show_imagery, OptionInfo):
+        show_imagery = False
+
     # Gather parameters (interactive or CLI)
     if not all([spread, focus]):
         result = gather_reading_inputs()
@@ -169,7 +187,7 @@ def read(
     else:
         # CLI mode - handle provider override
         spread_name = spread
-        focus_area = FocusArea(focus)
+        focus_area = focus  # Fixed: was focus_area = focus_area (typo)
         user_question = question  # Use the CLI question parameter
         use_ai = not no_ai
         interactive_imagery = None  # Will use CLI flag or config
