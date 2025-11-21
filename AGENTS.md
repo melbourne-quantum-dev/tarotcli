@@ -4,13 +4,14 @@
 
 **Purpose**: Minimalist tarot reading CLI with optional AI interpretation. Foundation-first architecture ensuring core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.6.0 (Milestone 6 Complete)
+**Current Status**: v0.6.5 (Milestone 6 Complete + UX Polish)
 
-- **Test Coverage**: 130 tests passing. Low coverage in `ui.py` (interactive prompts) is expected.
+- **Test Coverage**: 132 tests passing. Low coverage in `ui.py` (interactive prompts) is expected.
 - **Production Ready**: CLI fully functional with interactive and argument modes
 - **Multi-Provider Support**: Claude, Ollama (local), OpenAI, OpenRouter
 - **Reading Persistence**: Auto-save readings to JSONL storage, view history
 - **Rich Display**: Color-coded terminal output, markdown rendering, TTY-aware
+- **Unified Menu**: Standalone `tarotcli` command with looping interactive menu
 - **Cross-Platform**: Uses platformdirs for proper config/data paths on Linux, macOS, Windows
 
 **Key Achievement**: Professional Python CLI demonstrating scope discipline, test-driven development, and graceful degradation patterns. Portfolio piece showcasing ability to ship working MVP without overengineering.
@@ -826,6 +827,74 @@ git push origin v0.4.0
 
 ---
 
+### Milestone 7 (v0.7.0) - Sync API & Multi-Turn Conversations **[PLANNED]**
+
+**Scope**:
+
+- Fix LiteLLM async cleanup RuntimeWarning
+- Add follow-up question support for multi-turn readings
+- Maintain conversation context within a reading session
+
+**Phase 1: Sync API Migration**:
+
+- Replace `acompletion()` with synchronous `completion()` in ai.py
+- Remove `interpret_reading_sync()` wrapper (no longer needed)
+- Eliminates RuntimeWarning: `coroutine 'close_litellm_async_clients' was never awaited`
+- Simpler code, more appropriate for CLI context
+
+**Phase 2: Multi-Turn Conversation**:
+
+- After initial interpretation, prompt: "Ask a follow-up question? (press Enter to skip)"
+- Maintain message history for context continuity
+- AI receives: original reading + previous interpretation + follow-up question
+- Allow multiple follow-up rounds until user exits
+- Store conversation history with reading (extend JSONL schema)
+
+**Implementation Approach**:
+
+```python
+# Simplified sync API call
+def interpret_reading(reading: Reading, provider: str | None = None) -> str:
+    """Generate AI interpretation using synchronous completion."""
+    response = completion(
+        model=model_name,
+        messages=[{"role": "user", "content": prompt}],
+        **config
+    )
+    return response.choices[0].message.content
+
+# Multi-turn flow
+messages = [{"role": "user", "content": initial_prompt}]
+interpretation = completion(messages=messages)
+messages.append({"role": "assistant", "content": interpretation})
+
+while follow_up := prompt_follow_up():
+    messages.append({"role": "user", "content": follow_up})
+    response = completion(messages=messages)
+    messages.append({"role": "assistant", "content": response})
+```
+
+**Schema Extension** (optional):
+
+```python
+class Reading(BaseModel):
+    # ... existing fields ...
+    conversation: list[dict] | None = None  # Multi-turn message history
+```
+
+**Acceptance Criteria**:
+
+- No RuntimeWarning on AI readings ✅
+- `ai.py` uses sync `completion()` instead of `acompletion()` ✅
+- Follow-up question prompt appears after AI interpretation ✅
+- Conversation context maintained across follow-ups ✅
+- Graceful exit on empty follow-up (Enter to skip) ✅
+- All existing tests pass ✅
+
+**Estimated effort**: 2-3 hours
+
+---
+
 ### Future Consideration: Card Image URLs
 
 **Idea**: Add `img` field to dataset with URLs to sacred-texts.com RWS imagery (predictable pattern: `/tarot/pkt/img/ar01.jpg`).
@@ -840,16 +909,36 @@ git push origin v0.4.0
 
 ## Usage Examples
 
-### Interactive Mode
+### Unified Menu (Recommended)
 
 ```bash
-# Launch interactive prompts (recommended)
+# Launch interactive menu
+tarotcli
+
+# Output:
+# ──────────────────── 🔮 TarotCLI ────────────────────
+#
+# ? What is your intention?
+#   🔮 New Reading
+#   🔍 Card Lookup
+#   📚 View History
+#   📋 List Spreads
+#   ⚙️  Config Info
+#   ❌ Exit
+#
+# After each action: "Do something else? (Y/n)"
+```
+
+### Interactive Reading
+
+```bash
+# Direct reading command (skips menu)
 tarotcli read
 
 # Output:
-# 🔮 TarotCLI - Interactive Reading
+# ──────────── 🔮 TarotCLI - Interactive Reading ────────────
 #
-# Select spread type:
+# ? Select spread type:
 #   › Three Card - Past, Present, Future (3 cards)
 #     Celtic Cross - Comprehensive life situation (10 cards)
 #     Single Card - Direct guidance (1 card)
@@ -986,6 +1075,6 @@ tarotcli/
 
 ---
 
-**Last Updated**: November 21, 2025 (v0.6.0 - Rich Display Enhancement Complete)
+**Last Updated**: November 21, 2025 (v0.6.5 - UX Polish + Milestone 7 Planning)
 **Maintainer**: melbourne-quantum-dev
 **Repository**: Foundation-first development, professional git hygiene, comprehensive testing

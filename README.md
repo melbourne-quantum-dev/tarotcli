@@ -125,6 +125,26 @@ Fall, decadence, ruin, perdition, to perish also a certain clouded joy.
 
 ## Usage
 
+### Unified Menu (Recommended)
+
+```bash
+# Launch interactive menu
+tarotcli
+
+# Output:
+# ══════════════════════════════════════════════════════════════════════════════
+#                              🔮 TarotCLI
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# ? What is your intention?
+#   🔮 New Reading
+#   🔍 Card Lookup
+#   📚 View History
+#   📋 List Spreads
+#   ⚙️  Config Info
+#   ❌ Exit
+```
+
 ### Interactive Readings
 
 ```bash
@@ -136,6 +156,9 @@ tarotcli read --spread three --focus career --question "Should I freelance?"
 
 # Use local Ollama model
 tarotcli read --provider ollama --spread single
+
+# Include Waite's imagery descriptions
+tarotcli read --spread three --show-imagery
 
 # Markdown output to file
 tarotcli read --spread celtic --focus general > reading.md
@@ -158,9 +181,10 @@ tarotcli lookup "the magician" --show-imagery
 # Save to file
 tarotcli lookup "nine of swords" --show-imagery > nine-of-swords.md
 
-# Fuzzy matching (case-insensitive, partial names)
+# Fuzzy matching (case-insensitive, partial names, aliases)
 tarotcli lookup "magician"        # Finds "The Magician"
 tarotcli lookup "ACE OF WANDS"    # Finds "Ace of Wands"
+tarotcli lookup "five of pents"   # Alias: "pents" -> "pentacles"
 
 # Ambiguous searches show options
 tarotcli lookup "ace"
