@@ -25,8 +25,5 @@ output:
   save_readings: false  # Enable to auto-save readings (always stored as JSONL)
   readings_dir: null  # null = use platform default (Linux/macOS/Windows)
 
-display:
-  show_imagery: false  # Include Waite's 1911 imagery descriptions in readings
-
 data:
   deck_path: "tarot_cards_RW.jsonl"  # Relative to data/ directory

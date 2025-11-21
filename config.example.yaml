@@ -47,11 +47,11 @@ output:
                             #   macOS: ~/Library/Application Support/tarotcli
                             #   Windows: %LOCALAPPDATA%\tarotcli
 
-# Display preferences
-display:
-  show_imagery: false       # Include Waite's 1911 imagery descriptions in readings
-                            # When set, skips interactive prompt for this option
-                            # Can also be enabled per-reading: --show-imagery flag
+# Display preferences (optional - prompts interactively if not set)
+# display:
+#   show_imagery: true      # Include Waite's 1911 imagery descriptions in readings
+#                           # When set, skips interactive prompt for this option
+#                           # Can also be enabled per-reading: --show-imagery flag
 
 # Advanced: Custom deck path (rarely needed)
 # data:
