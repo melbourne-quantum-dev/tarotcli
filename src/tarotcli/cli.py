@@ -50,35 +50,49 @@ def main_menu(ctx: typer.Context):
     if ctx.invoked_subcommand is not None:
         return  # Subcommand will handle it
 
-    console.print()
-    console.rule("[bold magenta]🔮 TarotCLI[/bold magenta]", style="magenta")
-    console.print()
+    while True:
+        console.print()
+        console.rule("[bold magenta]🔮 TarotCLI[/bold magenta]", style="magenta")
+        console.print()
 
-    action = questionary.select(
-        "What is your intention?",
-        choices=[
-            {"name": "🔮 New Reading", "value": "read"},
-            {"name": "🔍 Card Lookup", "value": "lookup"},
-            {"name": "📚 View History", "value": "history"},
-            {"name": "📋 List Spreads", "value": "list_spreads"},
-            {"name": "⚙️  Config Info", "value": "config_info"},
-            {"name": "❌ Exit", "value": "exit"},
-        ],
-    ).ask()
+        action = questionary.select(
+            "What is your intention?",
+            choices=[
+                {"name": "🔮 New Reading", "value": "read"},
+                {"name": "🔍 Card Lookup", "value": "lookup"},
+                {"name": "📚 View History", "value": "history"},
+                {"name": "📋 List Spreads", "value": "list_spreads"},
+                {"name": "⚙️  Config Info", "value": "config_info"},
+                {"name": "❌ Exit", "value": "exit"},
+            ],
+        ).ask()
 
-    if action is None or action == "exit":
-        console.print("\n👋 Goodbye!\n")
-        raise typer.Exit(0)
-
-    # Handle lookup specially (needs card name input)
-    if action == "lookup":
-        card_name = questionary.text("Enter card name to look up:").ask()
-        if card_name is None or not card_name.strip():
-            console.print("\n👋 Lookup cancelled.\n")
+        if action is None or action == "exit":
+            console.print("\n👋 Goodbye!\n")
             raise typer.Exit(0)
-        ctx.invoke(lookup, card_name=card_name.strip())
-    else:
-        ctx.invoke(globals()[action])
+
+        # Route to selected action
+        if action == "lookup":
+            card_name = questionary.text("Enter card name to look up:").ask()
+            if card_name is None or not card_name.strip():
+                continue  # Back to menu
+            ctx.invoke(lookup, card_name=card_name.strip())
+        elif action == "read":
+            ctx.invoke(read)
+        elif action == "history":
+            ctx.invoke(history, last=10, json_output=False)
+        elif action == "list_spreads":
+            ctx.invoke(list_spreads)
+        elif action == "config_info":
+            ctx.invoke(config_info)
+
+        # Prompt to continue or exit
+        continue_session = questionary.confirm(
+            "Do something else?", default=True
+        ).ask()
+        if not continue_session:
+            console.print("\n👋 Goodbye!\n")
+            raise typer.Exit(0)
 
 
 @app.command()
