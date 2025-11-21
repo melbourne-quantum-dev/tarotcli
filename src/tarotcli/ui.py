@@ -114,7 +114,7 @@ def prompt_question() -> Optional[str]:
         "Specific question (press Enter to skip):", default=""
     ).ask()
 
-    return question if question.strip() else None
+    return question.strip() if question else None
 
 
 def prompt_use_ai_interpretation() -> bool:
@@ -149,27 +149,40 @@ def prompt_show_imagery() -> bool:
     ).ask()
 
 
-def gather_reading_inputs() -> Tuple[str, FocusArea, Optional[str], bool, bool]:
+def gather_reading_inputs() -> Optional[Tuple[str, FocusArea, Optional[str], bool, bool]]:
     """
     Complete interactive flow to gather all reading parameters.
 
     Guides user through all prompts in sequence, returns all selections.
+    Returns None if user cancels at any required prompt.
 
     Returns:
         Tuple of (spread_name, focus_area, question, use_ai, show_imagery)
+        or None if user cancelled.
 
     Example:
-        >>> spread, focus, question, use_ai, show_imagery = gather_reading_inputs()
-        >>> # User has selected all parameters, ready to perform reading
+        >>> result = gather_reading_inputs()
+        >>> if result:
+        ...     spread, focus, question, use_ai, show_imagery = result
     """
     console.print()
     console.rule("[bold magenta]🔮 TarotCLI - Interactive Reading[/bold magenta]", style="magenta")
     console.print()
 
     spread_name = prompt_spread_selection()
+    if spread_name is None:
+        return None  # User cancelled
+
     focus_area = prompt_focus_area()
+    if focus_area is None:
+        return None  # User cancelled
+
     question = prompt_question()
+    # question can be None (skipped), that's fine
+
     use_ai = prompt_use_ai_interpretation()
+    if use_ai is None:
+        return None  # User cancelled
 
     # Check if config has imagery preference, else prompt
     config = get_config()
@@ -177,6 +190,8 @@ def gather_reading_inputs() -> Tuple[str, FocusArea, Optional[str], bool, bool]:
         show_imagery = config.get("display.show_imagery", False)
     else:
         show_imagery = prompt_show_imagery()
+        if show_imagery is None:
+            return None  # User cancelled
 
     return spread_name, focus_area, question, use_ai, show_imagery
 

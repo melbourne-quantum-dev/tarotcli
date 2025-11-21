@@ -110,7 +110,12 @@ def read(
 
     # Gather parameters (interactive or CLI)
     if not all([spread, focus]):
-        spread_name, focus_area, user_question, use_ai, interactive_imagery = gather_reading_inputs()
+        result = gather_reading_inputs()
+        if result is None:
+            # User cancelled interactive prompts
+            typer.echo("\n👋 Reading cancelled.\n")
+            raise typer.Exit(0)
+        spread_name, focus_area, user_question, use_ai, interactive_imagery = result
     else:
         # CLI mode - handle provider override
         spread_name = spread
@@ -286,7 +291,8 @@ def history(
         # Display each reading using Rich formatting
         console.print(f"\n[bold]📚 Showing last {len(readings)} reading(s):[/bold]\n")
         for i, reading in enumerate(readings, start=1):
-            timestamp_str = reading.timestamp.strftime("%Y-%m-%d %H:%M") if reading.timestamp else "Unknown"
+            # timestamp is ISO string from JSONL, not datetime object
+            timestamp_str = reading.timestamp[:16].replace("T", " ") if reading.timestamp else "Unknown"
             console.print(f"[dim]Reading {i} - {timestamp_str}[/dim]")
             display_reading(reading)
             if i < len(readings):
