@@ -87,9 +87,7 @@ def main_menu(ctx: typer.Context):
             ctx.invoke(config_info)
 
         # Prompt to continue or exit
-        continue_session = questionary.confirm(
-            "Do something else?", default=True
-        ).ask()
+        continue_session = questionary.confirm("Do something else?", default=True).ask()
         if not continue_session:
             console.print("\n👋 Goodbye!\n")
             raise typer.Exit(0)
@@ -193,17 +191,20 @@ def read(
     if use_ai:
         try:
             # Provider override via CLI or config default
-            reading.interpretation = interpret_reading_sync(
-                reading,
-                provider=provider,  # None uses config default
-            )
+            with console.status(
+                "[bold #AF00FF]🔮 Reading the cards...[/bold #AF00FF]",
+                spinner="moon",
+            ):
+                reading.interpretation = interpret_reading_sync(
+                    reading,
+                    provider=provider,  # None uses config default
+                )
         except Exception as e:
             # Graceful degradation with helpful message
-            typer.echo(
-                f"⚠️  AI interpretation failed: {e}\n"
-                f"📖 Using static interpretation instead.\n"
-                f"💡 Check your config.yaml or API keys if unexpected.\n",
-                err=True,
+            console.print(f"[bold red]⚠️  AI interpretation failed:[/bold red] {e}")
+            console.print("[dim]📖 Using static interpretation instead.[/dim]")
+            console.print(
+                "[dim]💡 Check your config.yaml or API keys if unexpected.[/dim]"
             )
 
     # Auto-save reading if enabled
@@ -262,7 +263,7 @@ def lookup(
         from rich.panel import Panel
 
         console.print()
-        console.rule(f"[bold cyan]{card.name}[/bold cyan]", style="cyan")
+        console.rule(f"[bold #00FFFF]{card.name}[/bold #00FFFF]", style="#00FFFF")
 
         console.print("\n[bold green]↑ UPRIGHT[/bold green]")
         console.rule(style="dim")
@@ -277,8 +278,8 @@ def lookup(
             console.print(
                 Panel(
                     card.description,
-                    title="[bold yellow]🖼️  IMAGERY (Waite 1911)[/bold yellow]",
-                    border_style="yellow",
+                    title="[bold #FFD700]🖼️  IMAGERY (Waite 1911)[/bold #FFD700]",
+                    border_style="#FFD700",
                 )
             )
 
@@ -344,7 +345,11 @@ def history(
         console.print(f"\n[bold]📚 Showing last {len(readings)} reading(s):[/bold]\n")
         for i, reading in enumerate(readings, start=1):
             # timestamp is ISO string from JSONL, not datetime object
-            timestamp_str = reading.timestamp[:16].replace("T", " ") if reading.timestamp else "Unknown"
+            timestamp_str = (
+                reading.timestamp[:16].replace("T", " ")
+                if reading.timestamp
+                else "Unknown"
+            )
             console.print(f"[dim]Reading {i} - {timestamp_str}[/dim]")
             display_reading(reading)
             if i < len(readings):
@@ -398,7 +403,9 @@ def clear_history(
     if all:
         # Delete all readings
         typer.echo(f"\n⚠️  You are about to delete ALL {len(readings)} reading(s).\n")
-        confirm = typer.confirm("This action cannot be undone. Continue?", default=False)
+        confirm = typer.confirm(
+            "This action cannot be undone. Continue?", default=False
+        )
 
         if not confirm:
             typer.echo("❌ Deletion cancelled.\n")
@@ -421,7 +428,9 @@ def clear_history(
         typer.echo(
             f"\n⚠️  You are about to delete the last {actual_delete} reading(s).\n"
         )
-        confirm = typer.confirm("This action cannot be undone. Continue?", default=False)
+        confirm = typer.confirm(
+            "This action cannot be undone. Continue?", default=False
+        )
 
         if not confirm:
             typer.echo("❌ Deletion cancelled.\n")
