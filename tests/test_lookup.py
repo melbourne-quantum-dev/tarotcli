@@ -87,3 +87,17 @@ def test_lookup_returns_card_with_meanings(shuffled_deck):
     assert card.reversed_meaning  # Has content
     assert card.description  # Has Waite imagery
     assert card.id == "ar00"
+
+
+def test_lookup_alias_pents(deck):
+    """Alias 'pents' should expand to 'pentacles'."""
+    result = lookup_card(deck, "ace of pents")
+    assert result is not None
+    assert result.name == "Ace of Pentacles"
+
+
+def test_lookup_alias_coins(deck):
+    """Alias 'coins' should expand to 'pentacles'."""
+    result = lookup_card(deck, "two of coins")
+    assert result is not None
+    assert result.name == "Two of Pentacles"

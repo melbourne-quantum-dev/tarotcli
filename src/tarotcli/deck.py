@@ -242,7 +242,18 @@ def lookup_card(deck: TarotDeck, search_term: str) -> Card | list[Card] | None:
         >>> if card is None:
         ...     print("Card not found")
     """
+    # Common abbreviations/aliases (longer aliases first to avoid partial replacement issues)
+    aliases = [
+        ("pents", "pentacles"),
+        ("coins", "pentacles"),
+    ]
+
     search_lower = search_term.lower()
+    # Expand aliases (only replace once, skip if already expanded)
+    for alias, full in aliases:
+        if alias in search_lower and full not in search_lower:
+            search_lower = search_lower.replace(alias, full)
+
     matches = [c for c in deck.cards if search_lower in c.name.lower()]
 
     if len(matches) == 0:
