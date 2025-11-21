@@ -37,10 +37,48 @@ from tarotcli.models import FocusArea
 from tarotcli.ai import interpret_reading_sync
 from tarotcli.ui import gather_reading_inputs, display_reading, console
 from tarotcli.persistence import ReadingPersistence
+import questionary
 
 app = typer.Typer(
     name="tarotcli", help="Minimalist tarot reading CLI with optional AI interpretation"
 )
+
+
+@app.callback(invoke_without_command=True)
+def main_menu(ctx: typer.Context):
+    """Interactive menu when no subcommand is provided."""
+    if ctx.invoked_subcommand is not None:
+        return  # Subcommand will handle it
+
+    console.print()
+    console.rule("[bold magenta]🔮 TarotCLI[/bold magenta]", style="magenta")
+    console.print()
+
+    action = questionary.select(
+        "What is your intention?",
+        choices=[
+            {"name": "🔮 New Reading", "value": "read"},
+            {"name": "🔍 Card Lookup", "value": "lookup"},
+            {"name": "📚 View History", "value": "history"},
+            {"name": "📋 List Spreads", "value": "list_spreads"},
+            {"name": "⚙️  Config Info", "value": "config_info"},
+            {"name": "❌ Exit", "value": "exit"},
+        ],
+    ).ask()
+
+    if action is None or action == "exit":
+        console.print("\n👋 Goodbye!\n")
+        raise typer.Exit(0)
+
+    # Handle lookup specially (needs card name input)
+    if action == "lookup":
+        card_name = questionary.text("Enter card name to look up:").ask()
+        if card_name is None or not card_name.strip():
+            console.print("\n👋 Lookup cancelled.\n")
+            raise typer.Exit(0)
+        ctx.invoke(lookup, card_name=card_name.strip())
+    else:
+        ctx.invoke(globals()[action])
 
 
 @app.command()
