@@ -25,20 +25,28 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 from rich.theme import Theme
+from rich.align import Align
 
-# Custom theme for markdown rendering
-custom_theme = Theme({
-    "markdown.h1": "bold magenta",
-    "markdown.h2": "bold cyan",
-    "markdown.h3": "bold blue",
-    "markdown.strong": "bold magenta",  # **bold** text
-})
+# Mystical theme for tarot reading
+mystical_theme = Theme(
+    {
+        "markdown.h1": "bold #AF00FF",  # Deep Purple
+        "markdown.h2": "bold #00FFFF",  # Cyan
+        "markdown.h3": "bold #FFD700",  # Gold
+        "markdown.strong": "bold #FFD700",  # Gold for emphasis
+        "panel.border": "#AF00FF",  # Deep Purple borders
+        "box.border": "#00FFFF",  # Cyan box borders
+        "table.header": "bold #FFD700",  # Gold table headers
+        "tundra": "#A8B5BF",  # Tundra metallic grey
+    }
+)
 from tarotcli.config import get_config
 from tarotcli.models import FocusArea, Reading
 from tarotcli.spreads import SPREADS
+from rich import box
 
 # Rich console for formatted output with custom theme
-console = Console(theme=custom_theme)
+console = Console(theme=mystical_theme)
 
 
 def _is_terminal() -> bool:
@@ -149,7 +157,9 @@ def prompt_show_imagery() -> bool:
     ).ask()
 
 
-def gather_reading_inputs() -> Optional[Tuple[str, FocusArea, Optional[str], bool, bool]]:
+def gather_reading_inputs() -> Optional[
+    Tuple[str, FocusArea, Optional[str], bool, bool]
+]:
     """
     Complete interactive flow to gather all reading parameters.
 
@@ -166,7 +176,10 @@ def gather_reading_inputs() -> Optional[Tuple[str, FocusArea, Optional[str], boo
         ...     spread, focus, question, use_ai, show_imagery = result
     """
     console.print()
-    console.rule("[bold magenta]🔮 TarotCLI - Interactive Reading[/bold magenta]", style="magenta")
+    console.rule(
+        "[bold #AF00FF]🔮 TarotCLI - Interactive Reading[/bold #AF00FF]",
+        style="#AF00FF",
+    )
     console.print()
 
     spread_name = prompt_spread_selection()
@@ -239,55 +252,98 @@ def _display_reading_rich(
         f"{reading.focus_area.value.replace('_', ' ').title()}"
     )
     console.print()
-    console.rule(f"[bold cyan]{title}[/bold cyan]", style="cyan")
+    console.rule(f"[bold #AF00FF]🔮 {title} 🔮[/bold #AF00FF]", style="#AF00FF")
+    console.print()
 
     if reading.question:
-        console.print(f"\n[bold]❓ Question:[/bold] {reading.question}")
+        console.print(
+            Align.center(
+                Panel(
+                    f"[italic white]{reading.question}[/italic white]",
+                    title="[bold #00FFFF]❓ Question[/bold #00FFFF]",
+                    border_style="#00FFFF",
+                    expand=False,
+                )
+            )
+        )
+        console.print()
 
-    console.print("\n[bold]Cards Drawn:[/bold]\n")
-    table = Table(show_header=False, box=None, padding=(0, 2))
-    table.add_column("Position", style="dim")
-    table.add_column("Card")
-    table.add_column("Orientation")
+    # Cards Table
+    table = Table(
+        show_header=True,
+        box=box.ROUNDED,
+        padding=(0, 2),
+        header_style="bold #FFD700",
+        border_style="#AF00FF",
+        title="[bold white]Cards Drawn[/bold white]",
+        title_style="bold white",
+    )
+    table.add_column("Position", style="tundra")
+    table.add_column("Card", style="bold #FFD700")
+    table.add_column("Orientation", justify="center")
 
     for card in reading.cards:
         orientation = (
-            "[red]↓ Reversed[/red]" if card.reversed else "[green]↑ Upright[/green]"
+            "[bold red]↓ Reversed[/bold red]"
+            if card.reversed
+            else "[bold green]↑ Upright[/bold green]"
         )
-        table.add_row(card.position_meaning + ":", card.card.name, orientation)
+        table.add_row(card.position_meaning, card.card.name, orientation)
 
-    console.print(table)
+    console.print(table, justify="center")
+    console.print()
 
     if show_imagery:
+        console.rule(
+            "[bold #FFD700]Imagery (Waite 1911)[/bold #FFD700]", style="#FFD700"
+        )
         console.print()
-        console.rule("[bold yellow]Imagery (Waite 1911)[/bold yellow]", style="yellow")
         for card in reading.cards:
             console.print(
                 Panel(
                     card.card.description,
-                    title=f"[bold]{card.card.name}[/bold]",
-                    border_style="yellow",
+                    title=f"[bold #FFD700]{card.card.name}[/bold #FFD700]",
+                    border_style="#FFD700",
+                    subtitle=f"[tundra]{card.position_meaning}[/tundra]",
                 )
             )
+            console.print()  # Add vertical padding between panels
+        console.print()
 
-    console.print()
-    console.rule("[bold green]Interpretation[/bold green]", style="green")
+    # Interpretation Panel
+    console.rule("[bold #00FFFF]Interpretation[/bold #00FFFF]", style="#00FFFF")
     console.print()
 
     if reading.interpretation:
-        console.print(Markdown(reading.interpretation))
+        console.print(
+            Panel(
+                Markdown(reading.interpretation),
+                title="[bold #AF00FF]🔮 AI Narrative[/bold #AF00FF]",
+                border_style="#AF00FF",
+                padding=(1, 2),
+            )
+        )
         if show_static:
             console.print()
-            console.rule(
-                "[bold dim]Static Interpretation[/bold dim]", style="dim"
+            console.print(
+                Panel(
+                    Markdown(reading.static_interpretation),
+                    title="[bold tundra]Static Interpretation[/bold tundra]",
+                    border_style="tundra",
+                )
             )
-            console.print()
-            console.print(Markdown(reading.static_interpretation))
     else:
-        console.print(Markdown(reading.static_interpretation))
+        console.print(
+            Panel(
+                Markdown(reading.static_interpretation),
+                title="[bold #AF00FF]Static Interpretation[/bold #AF00FF]",
+                border_style="#AF00FF",
+                padding=(1, 2),
+            )
+        )
 
     console.print()
-    console.rule(style="cyan")
+    console.rule(style="#AF00FF")
 
 
 def display_reading(
