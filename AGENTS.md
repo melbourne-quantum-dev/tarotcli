@@ -692,53 +692,6 @@ git push origin v0.4.0
 - 7 tests for `lookup` CLI command in cli.py ✅
 - Documentation updated with usage examples ✅
 
----
-
-## Future Work
-
-### Known Issues
-
-**LiteLLM Async Cleanup RuntimeWarning**:
-
-- Issue: Non-breaking RuntimeWarning after Claude API readings
-- Error message: `RuntimeWarning: coroutine 'close_litellm_async_clients' was never awaited`
-- Root cause: `asyncio.run()` in `interpret_reading_sync()` (ai.py:206) closes event loop before LiteLLM cleanup
-- Impact: None - purely cosmetic warning, readings work perfectly
-- Recommended fix: Switch from `acompletion()` to sync `completion()` in ai.py
-  - Remove async/await from `interpret_reading()`
-  - Delete `interpret_reading_sync()` wrapper (no longer needed)
-  - Simpler code, more appropriate for CLI context
-  - Async was over-engineered for v0.5.0 anyway (noted in docstring)
-- Alternative: Accept the warning (non-breaking, just Python pedantry about cleanup)
-- Status: Documented in v0.5.0, fix deferred to future session
-
-**Ollama Timeout with Long Prompts**:
-
-- Issue: LiteLLM APIConnectionError with full tarot prompts (~4,300 chars)
-- Environment: P71 Thinkpad with P5000 GPU
-- Resolution: Works perfectly on 3080 GPU (10GB VRAM)
-- Assessment: Hardware constraint, not code issue
-- Workaround: Use Claude or smaller Ollama models; baseline always works
-
-**Small Ollama Models Hallucinate Imagery**:
-
-- Issue: Small models (e.g., 8B param) take prompt instructions too literally
-- Symptom: Reference "robes, serpents" etc. even when not present in drawn cards
-- Observed: Single card reading with long user question
-- Root cause: Prompt line 178-179 in `ai.py` gives examples that models treat as requirements:
-  ```
-  "3. References specific symbolic elements from the imagery descriptions",
-  "   (serpents, robes, objects, colors, positioning)",
-  ```
-- Potential fixes (not yet implemented):
-  1. Remove parenthetical examples entirely
-  2. Anchor to actual content: "from the imagery descriptions **provided above**"
-  3. Add explicit constraint: "Only reference symbols actually present in the drawn cards"
-  4. Combined: "References specific symbolic elements **only from the cards drawn above**"
-- Workaround: Use larger models (Claude, GPT-4) or keep questions concise
-
----
-
 ### Milestone 5 (v0.5.0) - Reading Persistence ✅
 
 **Scope**:
@@ -787,6 +740,51 @@ git push origin v0.4.0
   - Privacy warnings in docs and config
 
 **Actual effort**: ~4 hours (implementation, testing, docs, platformdirs, privacy features)
+
+---
+
+## Future Work
+
+### Known Issues
+
+**LiteLLM Async Cleanup RuntimeWarning**:
+
+- Issue: Non-breaking RuntimeWarning after Claude API readings
+- Error message: `RuntimeWarning: coroutine 'close_litellm_async_clients' was never awaited`
+- Root cause: `asyncio.run()` in `interpret_reading_sync()` (ai.py:206) closes event loop before LiteLLM cleanup
+- Impact: None - purely cosmetic warning, readings work perfectly
+- Recommended fix: Switch from `acompletion()` to sync `completion()` in ai.py
+  - Remove async/await from `interpret_reading()`
+  - Delete `interpret_reading_sync()` wrapper (no longer needed)
+  - Simpler code, more appropriate for CLI context
+  - Async was over-engineered for v0.5.0 anyway (noted in docstring)
+- Alternative: Accept the warning (non-breaking, just Python pedantry about cleanup)
+- Status: Documented in v0.5.0, fix deferred to future session
+
+**Ollama Timeout with Long Prompts**:
+
+- Issue: LiteLLM APIConnectionError with full tarot prompts (~4,300 chars)
+- Environment: P71 Thinkpad with P5000 GPU
+- Resolution: Works perfectly on 3080 GPU (10GB VRAM)
+- Assessment: Hardware constraint, not code issue
+- Workaround: Use Claude or smaller Ollama models; baseline always works
+
+**Small Ollama Models Hallucinate Imagery**:
+
+- Issue: Small models (e.g., 8B param) take prompt instructions too literally
+- Symptom: Reference "robes, serpents" etc. even when not present in drawn cards
+- Observed: Single card reading with long user question
+- Root cause: Prompt line 178-179 in `ai.py` gives examples that models treat as requirements:
+  ```
+  "3. References specific symbolic elements from the imagery descriptions",
+  "   (serpents, robes, objects, colors, positioning)",
+  ```
+- Potential fixes (not yet implemented):
+  1. Remove parenthetical examples entirely
+  2. Anchor to actual content: "from the imagery descriptions **provided above**"
+  3. Add explicit constraint: "Only reference symbols actually present in the drawn cards"
+  4. Combined: "References specific symbolic elements **only from the cards drawn above**"
+- Workaround: Use larger models (Claude, GPT-4) or keep questions concise
 
 ---
 
