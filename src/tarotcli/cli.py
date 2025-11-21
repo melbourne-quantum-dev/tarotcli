@@ -35,7 +35,7 @@ from tarotcli.deck import TarotDeck, lookup_card
 from tarotcli.spreads import get_spread
 from tarotcli.models import FocusArea
 from tarotcli.ai import interpret_reading_sync
-from tarotcli.ui import gather_reading_inputs, display_reading
+from tarotcli.ui import gather_reading_inputs, display_reading, console
 from tarotcli.persistence import ReadingPersistence
 
 app = typer.Typer(
@@ -74,6 +74,9 @@ def read(
     json_output: bool = typer.Option(
         False, "--json", help="Output as JSON instead of markdown formatted text."
     ),
+    show_imagery: bool = typer.Option(
+        False, "--show-imagery", help="Include Waite's 1911 imagery descriptions"
+    ),
 ):
     """Perform a tarot reading.
 
@@ -107,13 +110,14 @@ def read(
 
     # Gather parameters (interactive or CLI)
     if not all([spread, focus]):
-        spread_name, focus_area, user_question, use_ai = gather_reading_inputs()
+        spread_name, focus_area, user_question, use_ai, interactive_imagery = gather_reading_inputs()
     else:
         # CLI mode - handle provider override
         spread_name = spread
         focus_area = FocusArea(focus)
         user_question = question  # Use the CLI question parameter
         use_ai = not no_ai
+        interactive_imagery = None  # Will use CLI flag or config
 
     # Validate spread_name is not None (should always be set from above logic)
     if spread_name is None:
@@ -155,7 +159,12 @@ def read(
     if json_output:
         print(reading.model_dump_json(indent=2))
     else:
-        display_reading(reading)
+        # Determine imagery: interactive choice > CLI flag > config
+        if interactive_imagery is not None:
+            display_imagery = interactive_imagery
+        else:
+            display_imagery = show_imagery or config.get("display.show_imagery", False)
+        display_reading(reading, show_imagery=display_imagery)
 
 
 @app.command()
@@ -192,25 +201,32 @@ def lookup(
             print("\nPlease refine your search with a more specific card name.")
             raise typer.Exit(1)
 
-        # Display card meanings (card is guaranteed to be Card type here)
-        print(f"\n{'=' * 60}")
-        print(f"{card.name}")
-        print(f"{'=' * 60}\n")
+        # Display card meanings using Rich
+        from rich.panel import Panel
 
-        print(f"↑ UPRIGHT")
-        print(f"{'-' * 60}")
-        print(f"{card.upright_meaning}\n")
+        console.print()
+        console.rule(f"[bold cyan]{card.name}[/bold cyan]", style="cyan")
 
-        print(f"↓ REVERSED")
-        print(f"{'-' * 60}")
-        print(f"{card.reversed_meaning}\n")
+        console.print("\n[bold green]↑ UPRIGHT[/bold green]")
+        console.rule(style="dim")
+        console.print(card.upright_meaning)
+
+        console.print("\n[bold red]↓ REVERSED[/bold red]")
+        console.rule(style="dim")
+        console.print(card.reversed_meaning)
 
         if show_imagery:
-            print(f"🖼️  IMAGERY (Waite 1911)")
-            print(f"{'-' * 60}")
-            print(f"{card.description}\n")
+            console.print()
+            console.print(
+                Panel(
+                    card.description,
+                    title="[bold yellow]🖼️  IMAGERY (Waite 1911)[/bold yellow]",
+                    border_style="yellow",
+                )
+            )
 
-        print(f"{'=' * 60}\n")
+        console.print()
+        console.rule(style="cyan")
 
     except Exception as e:
         print(f"❌ Error: {e}")
@@ -267,14 +283,14 @@ def history(
         json_data = [r.model_dump() for r in readings]
         print(json.dumps(json_data, indent=2, default=str))
     else:
-        # Display each reading using markdown format
-        typer.echo(f"\n📚 Showing last {len(readings)} reading(s):\n")
-        typer.echo("=" * 60)
+        # Display each reading using Rich formatting
+        console.print(f"\n[bold]📚 Showing last {len(readings)} reading(s):[/bold]\n")
         for i, reading in enumerate(readings, start=1):
-            typer.echo(f"\n[Reading {i} - {reading.timestamp}]")
+            timestamp_str = reading.timestamp.strftime("%Y-%m-%d %H:%M") if reading.timestamp else "Unknown"
+            console.print(f"[dim]Reading {i} - {timestamp_str}[/dim]")
             display_reading(reading)
-            if i < len(readings):  # Don't add separator after last reading
-                typer.echo("=" * 60)
+            if i < len(readings):
+                console.print()
 
 
 @app.command()

@@ -1,6 +1,6 @@
 [project]
 name = "tarotcli"
-version = "0.5.0"
+version = "0.6.0"
 description = "Minimalist tarot reading CLI with optional AI interpretation"
 authors = [{name = "melbourne-quantum-dev", email = "leonardo97@tuta.com"}]
 readme = "README.md"
@@ -15,6 +15,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "pyyaml>=6.0.3",
     "platformdirs>=4.0.0",
+    "rich>=13.0.0",
 ]
 
 [project.optional-dependencies]

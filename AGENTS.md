@@ -4,12 +4,13 @@
 
 **Purpose**: Minimalist tarot reading CLI with optional AI interpretation. Foundation-first architecture ensuring core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.5.0 (Milestone 5 Complete)
+**Current Status**: v0.6.0 (Milestone 6 Complete)
 
-- **Test Coverage**: Coverage is at 83% overall (120/120 passing). The low coverage areas are expected: `ui.py` at 23% (interactive prompts), `cli.py` at 78% (some command paths untested).
+- **Test Coverage**: 130 tests passing. Low coverage in `ui.py` (interactive prompts) is expected.
 - **Production Ready**: CLI fully functional with interactive and argument modes
 - **Multi-Provider Support**: Claude, Ollama (local), OpenAI, OpenRouter
 - **Reading Persistence**: Auto-save readings to JSONL storage, view history
+- **Rich Display**: Color-coded terminal output, markdown rendering, TTY-aware
 - **Cross-Platform**: Uses platformdirs for proper config/data paths on Linux, macOS, Windows
 
 **Key Achievement**: Professional Python CLI demonstrating scope discipline, test-driven development, and graceful degradation patterns. Portfolio piece showcasing ability to ship working MVP without overengineering.
@@ -788,7 +789,7 @@ git push origin v0.4.0
 
 ---
 
-### Milestone 6 (v0.6.0) - Rich Display Enhancement **[PLANNED]**
+### Milestone 6 (v0.6.0) - Rich Display Enhancement ✅
 
 **Scope**:
 
@@ -797,65 +798,43 @@ git push origin v0.4.0
 - Enhance both live readings and history display with Rich formatting
 - Improve text wrapping for long AI interpretations
 
-**Phase 1: Rich Integration**:
+**Deliverables (All Complete)**:
 
-- Replace plain `print()` with Rich Console for proper text wrapping
-- Add color-coded sections (headers, cards, interpretations)
-- Terminal-aware width (adapts to user's terminal size)
-- Rich tables for card layout display
-- Markdown rendering for AI interpretations (if Claude uses formatting)
-- Panels for visual separation of sections
-
-**Phase 2: Imagery Flag Extension**:
-
-- CLI flag: `tarotcli read --show-imagery` includes Waite descriptions
-- Config option: `display.show_imagery: true` (default: `false`)
-- Display imagery in Rich panels with proper wrapping
-- Extends existing `lookup --show-imagery` pattern to full readings
-
-**Benefits**:
-
-- Automatic text wrapping prevents interpretation overflow on narrow terminals
-- Color-coding improves readability (card positions, orientations)
-- Tables provide cleaner card layout than current list format
-- Consistent with Rich usage in modern Python CLIs (Typer, Poetry, etc.)
-
-**Explicitly NOT included**:
-
-- Generating new imagery descriptions (dataset is authoritative)
-- Image display (text descriptions only)
-- Imagery-based search or filtering
-- Breaking changes to existing output (preserve `--json` behavior)
-
-**Implementation Preview**:
-
-```bash
-# Default (enhanced with Rich)
-tarotcli read --spread three
-# → Rich panels, color headers, wrapped text, tables
-
-# With imagery descriptions
-tarotcli read --spread three --show-imagery
-# → All Rich enhancements + Waite imagery in card panels
-
-# History also benefits
-tarotcli history --last 3
-# → Rich formatting for past readings
-```
-
-**Acceptance Criteria**:
-
-- `rich` added to dependencies in pyproject.toml ✅
-- `display_reading()` refactored to use Rich Console ✅
-- Text wraps to terminal width (no more overflow) ✅
-- `tarotcli read --show-imagery` includes Waite descriptions ✅
+- `rich>=13.0.0` added to dependencies ✅
+- `display_reading()` refactored with Rich Console ✅
+- Color-coded output: cyan headers, green/red orientations, magenta bold ✅
+- Rich tables for card layout display ✅
+- Markdown rendering for AI interpretations (bold, headers colored) ✅
+- Yellow panels for Waite imagery descriptions ✅
+- `--show-imagery` flag on `tarotcli read` command ✅
+- `display.show_imagery` config option ✅
+- Interactive prompt for imagery (when config not set) ✅
+- TTY detection: Rich for terminal, plain markdown for file redirection ✅
 - `tarotcli history` uses Rich formatting ✅
-- `--json` output unchanged (Rich only affects markdown display) ✅
-- Config option `display.show_imagery` works ✅
-- All existing tests pass (display logic isolated) ✅
-- UI remains minimal and elegant (no over-styling) ✅
+- `tarotcli lookup` uses Rich formatting ✅
+- All 130 tests pass ✅
 
-**Estimated effort**: 2-3 hours (1.5 hours Rich integration, 1 hour imagery flag, 30 min testing)
+**Implementation Notes**:
+
+- Custom Rich theme for markdown: H1/bold magenta, H2 cyan, H3 blue
+- `_is_terminal()` helper detects stdout TTY
+- `_display_reading_rich()` for terminal, `_display_reading_plain()` for files
+- File redirection (`> reading.md`) produces clean markdown
+- Interactive header styled with Rich rule
+
+**Actual effort**: ~2 hours
+
+---
+
+### Future Consideration: Card Image URLs
+
+**Idea**: Add `img` field to dataset with URLs to sacred-texts.com RWS imagery (predictable pattern: `/tarot/pkt/img/ar01.jpg`).
+
+**Potential feature**: `tarotcli lookup "the magician" --open-image` launches browser to card artwork.
+
+**Implementation**: ~5 lines using `webbrowser.open()`, cross-platform. Useful for physical deck validation.
+
+**Not pursuing**: Terminal inline images (Kitty/iTerm2/sixel) - too terminal-dependent, breaks in most environments.
 
 ---
 
@@ -1007,6 +986,6 @@ tarotcli/
 
 ---
 
-**Last Updated**: November 18, 2025 (v0.5.0 - Reading Persistence Complete)
+**Last Updated**: November 21, 2025 (v0.6.0 - Rich Display Enhancement Complete)
 **Maintainer**: melbourne-quantum-dev
 **Repository**: Foundation-first development, professional git hygiene, comprehensive testing
