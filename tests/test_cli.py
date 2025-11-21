@@ -11,6 +11,13 @@ from tarotcli.models import FocusArea
 runner = CliRunner()
 
 
+@pytest.fixture(autouse=True)
+def disable_persistence():
+    """Prevent tests from writing to real persistence storage."""
+    with patch("tarotcli.cli.ReadingPersistence"):
+        yield
+
+
 def test_version_command():
     """Version command should display version."""
     result = runner.invoke(app, ["version"])
