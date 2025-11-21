@@ -4,7 +4,7 @@
 
 **Purpose**: Minimalist tarot reading CLI with optional AI interpretation. Foundation-first architecture ensuring core functionality works reliably without LLM dependency.
 
-**Current Status**: v0.6.5 (Milestone 6 Complete + UX Polish)
+**Current Status**: v0.6.6 (Milestone 6 Complete + UX/Visual Polish)
 
 - **Test Coverage**: 132 tests passing. Low coverage in `ui.py` (interactive prompts) is expected.
 - **Production Ready**: CLI fully functional with interactive and argument modes
@@ -827,6 +827,24 @@ git push origin v0.4.0
 
 ---
 
+### v0.6.5-0.6.6 - UX & Visual Polish ✅
+
+**v0.6.5 - UX Improvements**:
+- Unified interactive menu: standalone `tarotcli` command with looping menu
+- Card alias expansion: "magician" → "The Magician", common abbreviations supported
+- Config fix: removed `show_imagery` default to enable interactive prompt
+- Updated usage examples in docs
+
+**v0.6.6 - Visual Polish**:
+- "Mystical" Rich theme: purple/magenta colour palette for readings
+- AI processing spinner with contextual messages
+- Aligned lookup command styling with reading display
+- Test fix: mock config in graceful degradation test
+
+**Combined effort**: ~3 hours across two sessions
+
+---
+
 ### Milestone 7 (v0.7.0) - Sync API & Multi-Turn Conversations **[PLANNED]**
 
 **Scope**:
@@ -1075,6 +1093,6 @@ tarotcli/
 
 ---
 
-**Last Updated**: November 21, 2025 (v0.6.5 - UX Polish + Milestone 7 Planning)
+**Last Updated**: November 21, 2025 (v0.6.6 - UX & Visual Polish)
 **Maintainer**: melbourne-quantum-dev
 **Repository**: Foundation-first development, professional git hygiene, comprehensive testing

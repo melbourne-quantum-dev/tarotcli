@@ -208,11 +208,15 @@ def test_read_command_ai_error_graceful_degradation():
 
     mock_spread.create_reading.return_value = mock_reading
 
+    mock_config = Mock()
+    mock_config.get.return_value = False  # display.show_imagery = False
+
     with (
         patch("tarotcli.cli.TarotDeck.load_default", return_value=mock_deck),
         patch("tarotcli.cli.get_spread", return_value=mock_spread),
         patch("tarotcli.cli.interpret_reading_sync") as mock_ai,
         patch("tarotcli.cli.display_reading") as mock_display,
+        patch("tarotcli.cli.get_config", return_value=mock_config),
     ):
         # Make AI raise an exception
         mock_ai.side_effect = Exception("API error")
