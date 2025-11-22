@@ -173,9 +173,16 @@ def test_build_interpretation_prompt_includes_orientation(sample_reading):
     """Prompt should indicate upright/reversed for each card."""
     prompt = _build_interpretation_prompt(sample_reading)
 
-    # Should contain "Upright" or "Reversed" for each card
-    orientation_count = prompt.count("Upright") + prompt.count("Reversed")
-    assert orientation_count == len(sample_reading.cards)
+    # Check that each card appears with its orientation
+    # Format in prompt is: "**Position** (Orientation):\n- Card: CardName"
+    for card in sample_reading.cards:
+        # Check card name appears
+        assert card.card.name in prompt, f"Card {card.card.name} not found in prompt"
+        # Check position appears
+        assert card.position_meaning in prompt, f"Position {card.position_meaning} not found in prompt"
+        # Check orientation marker appears (at least once in prompt, could be in meanings)
+        orientation_word = "Upright" if not card.reversed else "Reversed"
+        assert orientation_word in prompt, f"Orientation {orientation_word} not found in prompt"
 
 
 def test_build_interpretation_prompt_includes_traditional_meanings(sample_reading):

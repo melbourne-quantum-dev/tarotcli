@@ -107,7 +107,14 @@ def test_read_command_missing_spread_prompt_interactive():
     """Should prompt for spread when not provided via CLI."""
     # Test with mocked interactive prompts
     with patch("tarotcli.cli.gather_reading_inputs") as mock_gather:
-        mock_gather.return_value = ("single", FocusArea.GENERAL, None, False, False, True)
+        mock_gather.return_value = (
+            "single",
+            FocusArea.GENERAL,
+            None,
+            False,
+            False,
+            True,
+        )
 
         mock_deck = Mock()
         mock_deck.load_default.return_value = mock_deck
