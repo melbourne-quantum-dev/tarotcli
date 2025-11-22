@@ -161,6 +161,7 @@ def read(
     # Handle ctx.invoke() passing OptionInfo objects instead of None
     # This happens when called from main_menu without explicit parameters
     from typer.models import OptionInfo
+
     if isinstance(spread, OptionInfo):
         spread = None
     if isinstance(focus, OptionInfo):
@@ -183,7 +184,14 @@ def read(
             # User cancelled interactive prompts
             typer.echo("\n👋 Reading cancelled.\n")
             raise typer.Exit(0)
-        spread_name, focus_area, user_question, use_ai, interactive_imagery, interactive_static = result
+        (
+            spread_name,
+            focus_area,
+            user_question,
+            use_ai,
+            interactive_imagery,
+            interactive_static,
+        ) = result
     else:
         # CLI mode - handle provider override
         spread_name = spread
@@ -248,7 +256,9 @@ def read(
         else:
             display_static = config.get("display.show_static", True)
 
-        display_reading(reading, show_static=display_static, show_imagery=display_imagery)
+        display_reading(
+            reading, show_static=display_static, show_imagery=display_imagery
+        )
 
 
 @app.command()
@@ -381,7 +391,9 @@ def history(
                 else "Unknown"
             )
             console.print(f"[dim]Reading {i} - {timestamp_str}[/dim]")
-            display_reading(reading, show_static=display_static, show_imagery=display_imagery)
+            display_reading(
+                reading, show_static=display_static, show_imagery=display_imagery
+            )
             if i < len(readings):
                 console.print()
 
