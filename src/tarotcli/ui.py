@@ -281,9 +281,9 @@ def _display_reading_rich(
         console.print(
             Align.center(
                 Panel(
-                    f"[italic #FFD700]\"{reading.question}\"[/italic #FFD700]",
+                    f"[italic #A8B5B]\"{reading.question}\"[/italic #A8B5B]",
                     title="[bold white]✨ Your Question ✨[/bold white]",
-                    border_style="#FFD700",  # Gold border
+                    border_style="#AF00FF",  # Gold border
                     box=box.DOUBLE,  # Elegant double-line border
                     padding=(1, 4),  # More spacious padding
                     expand=False,
@@ -294,12 +294,13 @@ def _display_reading_rich(
 
     # Cards Table
     # Add Meaning column when showing static interpretation (no AI or show_static=True)
+    # Add Imagery column when show_imagery=True
     show_meaning_column = reading.interpretation is None or show_static
 
     table = Table(
         show_header=True,
         box=box.SIMPLE_HEAVY,  # Grid lines for better row separation
-        padding=(1, 2),  # Vertical and horizontal padding (must be integers)
+        padding=(1, 1),  # Vertical and horizontal padding (must be integers)
         header_style="bold #FFD700",
         border_style="white",
         title="[bold white]Cards Drawn[/bold white]",
@@ -312,44 +313,32 @@ def _display_reading_rich(
     if show_meaning_column:
         table.add_column("Meaning (Waite 1911)", justify="full", no_wrap=False)
 
+    if show_imagery:
+        table.add_column("Imagery (Waite 1911)", justify="full", no_wrap=False, style="#A8B5BF")
+
     for card in reading.cards:
         orientation = (
             "[bold red]↓ Reversed[/bold red]"
             if card.reversed
             else "[bold green]↑ Upright[/bold green]"
         )
+
+        # Build row based on which columns are enabled
+        row_data = [card.position_meaning, card.card.name, orientation]
+
         if show_meaning_column:
             # Color-code meaning to match orientation (green for upright, red for reversed)
             meaning_color = "red" if card.reversed else "green"
             meaning_text = f"[{meaning_color}]{card.effective_meaning}[/{meaning_color}]"
-            table.add_row(
-                card.position_meaning,
-                card.card.name,
-                orientation,
-                meaning_text
-            )
-        else:
-            table.add_row(card.position_meaning, card.card.name, orientation)
+            row_data.append(meaning_text)
+
+        if show_imagery:
+            row_data.append(card.card.description)
+
+        table.add_row(*row_data)
 
     console.print(table, justify="center")
     console.print()
-
-    if show_imagery:
-        console.rule(
-            "[bold #FFD700]Imagery (Waite 1911)[/bold #FFD700]", style="#FFD700"
-        )
-        console.print()
-        for card in reading.cards:
-            console.print(
-                Panel(
-                    card.card.description,
-                    title=f"[bold #FFD700]{card.card.name}[/bold #FFD700]",
-                    border_style="#FFD700",
-                    subtitle=f"[tundra]{card.position_meaning}[/tundra]",
-                )
-            )
-            console.print()  # Add vertical padding between panels
-        console.print()
 
     # Interpretation Panel
     # Only show if AI interpretation exists (meanings already in table for static mode)
