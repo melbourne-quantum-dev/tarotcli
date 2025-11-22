@@ -157,8 +157,22 @@ def prompt_show_imagery() -> bool:
     ).ask()
 
 
+def prompt_show_static() -> bool:
+    """
+    Ask if user wants to show card meanings alongside AI interpretation.
+
+    Only prompts if config doesn't have a preference set.
+
+    Returns:
+        True to show static meanings in table column, False otherwise.
+    """
+    return questionary.confirm(
+        "Show card meanings in table?", default=True
+    ).ask()
+
+
 def gather_reading_inputs() -> Optional[
-    Tuple[str, FocusArea, Optional[str], bool, bool]
+    Tuple[str, FocusArea, Optional[str], bool, bool, bool]
 ]:
     """
     Complete interactive flow to gather all reading parameters.
@@ -167,13 +181,13 @@ def gather_reading_inputs() -> Optional[
     Returns None if user cancels at any required prompt.
 
     Returns:
-        Tuple of (spread_name, focus_area, question, use_ai, show_imagery)
+        Tuple of (spread_name, focus_area, question, use_ai, show_imagery, show_static)
         or None if user cancelled.
 
     Example:
         >>> result = gather_reading_inputs()
         >>> if result:
-        ...     spread, focus, question, use_ai, show_imagery = result
+        ...     spread, focus, question, use_ai, show_imagery, show_static = result
     """
     console.print()
     console.rule(
@@ -197,8 +211,9 @@ def gather_reading_inputs() -> Optional[
     if use_ai is None:
         return None  # User cancelled
 
-    # Check if config has imagery preference, else prompt
+    # Check if config has display preferences, else prompt
     config = get_config()
+
     if config.get("display.show_imagery") is not None:
         show_imagery = config.get("display.show_imagery", False)
     else:
@@ -206,7 +221,14 @@ def gather_reading_inputs() -> Optional[
         if show_imagery is None:
             return None  # User cancelled
 
-    return spread_name, focus_area, question, use_ai, show_imagery
+    if config.get("display.show_static") is not None:
+        show_static = config.get("display.show_static", True)
+    else:
+        show_static = prompt_show_static()
+        if show_static is None:
+            return None  # User cancelled
+
+    return spread_name, focus_area, question, use_ai, show_imagery, show_static
 
 
 def _display_reading_plain(
@@ -259,9 +281,11 @@ def _display_reading_rich(
         console.print(
             Align.center(
                 Panel(
-                    f"[italic white]{reading.question}[/italic white]",
-                    title="[bold #00FFFF]❓ Question[/bold #00FFFF]",
-                    border_style="#00FFFF",
+                    f"[italic #FFD700]\"{reading.question}\"[/italic #FFD700]",
+                    title="[bold white]✨ Your Question ✨[/bold white]",
+                    border_style="#FFD700",  # Gold border
+                    box=box.DOUBLE,  # Elegant double-line border
+                    padding=(1, 4),  # More spacious padding
                     expand=False,
                 )
             )
@@ -269,18 +293,24 @@ def _display_reading_rich(
         console.print()
 
     # Cards Table
+    # Add Meaning column when showing static interpretation (no AI or show_static=True)
+    show_meaning_column = reading.interpretation is None or show_static
+
     table = Table(
         show_header=True,
-        box=box.ROUNDED,
-        padding=(0, 2),
+        box=box.SIMPLE_HEAVY,  # Grid lines for better row separation
+        padding=(1, 2),  # Vertical and horizontal padding (must be integers)
         header_style="bold #FFD700",
-        border_style="#AF00FF",
+        border_style="white",
         title="[bold white]Cards Drawn[/bold white]",
         title_style="bold white",
     )
-    table.add_column("Position", style="tundra")
-    table.add_column("Card", style="bold #FFD700")
+    table.add_column("Position", style="tundra", justify="center")
+    table.add_column("Card", style="bold white", justify="center")
     table.add_column("Orientation", justify="center")
+
+    if show_meaning_column:
+        table.add_column("Meaning (Waite 1911)", justify="full", no_wrap=False)
 
     for card in reading.cards:
         orientation = (
@@ -288,7 +318,18 @@ def _display_reading_rich(
             if card.reversed
             else "[bold green]↑ Upright[/bold green]"
         )
-        table.add_row(card.position_meaning, card.card.name, orientation)
+        if show_meaning_column:
+            # Color-code meaning to match orientation (green for upright, red for reversed)
+            meaning_color = "red" if card.reversed else "green"
+            meaning_text = f"[{meaning_color}]{card.effective_meaning}[/{meaning_color}]"
+            table.add_row(
+                card.position_meaning,
+                card.card.name,
+                orientation,
+                meaning_text
+            )
+        else:
+            table.add_row(card.position_meaning, card.card.name, orientation)
 
     console.print(table, justify="center")
     console.print()
@@ -311,10 +352,10 @@ def _display_reading_rich(
         console.print()
 
     # Interpretation Panel
-    console.rule("[bold #00FFFF]Interpretation[/bold #00FFFF]", style="#00FFFF")
-    console.print()
-
+    # Only show if AI interpretation exists (meanings already in table for static mode)
     if reading.interpretation:
+        console.rule("[bold #00FFFF]Interpretation[/bold #00FFFF]", style="#00FFFF")
+        console.print()
         console.print(
             Panel(
                 Markdown(reading.interpretation),
@@ -323,24 +364,8 @@ def _display_reading_rich(
                 padding=(1, 2),
             )
         )
-        if show_static:
-            console.print()
-            console.print(
-                Panel(
-                    Markdown(reading.static_interpretation),
-                    title="[bold tundra]Static Interpretation[/bold tundra]",
-                    border_style="tundra",
-                )
-            )
-    else:
-        console.print(
-            Panel(
-                Markdown(reading.static_interpretation),
-                title="[bold #AF00FF]Static Interpretation[/bold #AF00FF]",
-                border_style="#AF00FF",
-                padding=(1, 2),
-            )
-        )
+        # Note: show_static parameter no longer shows redundant panel
+        # Meanings appear in table's 4th column when show_static=True
 
     console.print()
     console.rule(style="#AF00FF")

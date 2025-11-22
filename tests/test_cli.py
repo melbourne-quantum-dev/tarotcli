@@ -107,7 +107,7 @@ def test_read_command_missing_spread_prompt_interactive():
     """Should prompt for spread when not provided via CLI."""
     # Test with mocked interactive prompts
     with patch("tarotcli.cli.gather_reading_inputs") as mock_gather:
-        mock_gather.return_value = ("single", FocusArea.GENERAL, None, False, False)
+        mock_gather.return_value = ("single", FocusArea.GENERAL, None, False, False, True)
 
         mock_deck = Mock()
         mock_deck.load_default.return_value = mock_deck
@@ -227,8 +227,8 @@ def test_read_command_ai_error_graceful_degradation():
 
         assert result.exit_code == 0
         mock_display.assert_called_once_with(
-            mock_reading, show_imagery=False
-        )  # Called with reading object and show_imagery default
+            mock_reading, show_static=False, show_imagery=False
+        )  # Called with reading object and display config values
         # AI error message is printed via typer.echo(err=True) which goes to stderr
         assert (
             "AI interpretation failed" in result.stdout

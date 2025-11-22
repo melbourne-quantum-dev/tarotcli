@@ -47,11 +47,18 @@ output:
                             #   macOS: ~/Library/Application Support/tarotcli
                             #   Windows: %LOCALAPPDATA%\tarotcli
 
-# Display preferences (optional - prompts interactively if not set)
+# Display Preferences (optional - prompts interactively if not set)
 # display:
-#   show_imagery: true      # Include Waite's 1911 imagery descriptions in readings
+#   show_imagery: false     # Include Waite's 1911 imagery descriptions in readings
 #                           # When set, skips interactive prompt for this option
 #                           # Can also be enabled per-reading: --show-imagery flag
+#
+#   show_static: true       # Show card meanings in table column alongside AI interpretation
+#                           # When set, skips interactive prompt for this option
+#                           # true = 4-column table (Position, Card, Orientation, Meaning)
+#                           # false = 3-column table (Position, Card, Orientation only)
+#                           # Note: Static-only readings (--no-ai) always show meanings
+#                           # Provides educational context and comparison with AI narrative
 
 # Advanced: Custom deck path (rarely needed)
 # data:

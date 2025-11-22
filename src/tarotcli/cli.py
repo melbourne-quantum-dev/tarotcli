@@ -183,14 +183,16 @@ def read(
             # User cancelled interactive prompts
             typer.echo("\n👋 Reading cancelled.\n")
             raise typer.Exit(0)
-        spread_name, focus_area, user_question, use_ai, interactive_imagery = result
+        spread_name, focus_area, user_question, use_ai, interactive_imagery, interactive_static = result
     else:
         # CLI mode - handle provider override
         spread_name = spread
-        focus_area = focus  # Fixed: was focus_area = focus_area (typo)
+        # Convert string to FocusArea enum
+        focus_area = FocusArea(focus) if isinstance(focus, str) else focus
         user_question = question  # Use the CLI question parameter
         use_ai = not no_ai
         interactive_imagery = None  # Will use CLI flag or config
+        interactive_static = None  # Will use config
 
     # Validate spread_name is not None (should always be set from above logic)
     if spread_name is None:
@@ -235,12 +237,18 @@ def read(
     if json_output:
         print(reading.model_dump_json(indent=2))
     else:
-        # Determine imagery: interactive choice > CLI flag > config
+        # Determine display preferences: interactive choice > CLI flag > config
         if interactive_imagery is not None:
             display_imagery = interactive_imagery
         else:
             display_imagery = show_imagery or config.get("display.show_imagery", False)
-        display_reading(reading, show_imagery=display_imagery)
+
+        if interactive_static is not None:
+            display_static = interactive_static
+        else:
+            display_static = config.get("display.show_static", True)
+
+        display_reading(reading, show_static=display_static, show_imagery=display_imagery)
 
 
 @app.command()
@@ -360,6 +368,10 @@ def history(
         print(json.dumps(json_data, indent=2, default=str))
     else:
         # Display each reading using Rich formatting
+        # Get display preferences from config
+        display_static = config.get("display.show_static", True)
+        display_imagery = config.get("display.show_imagery", False)
+
         console.print(f"\n[bold]📚 Showing last {len(readings)} reading(s):[/bold]\n")
         for i, reading in enumerate(readings, start=1):
             # timestamp is ISO string from JSONL, not datetime object
@@ -369,7 +381,7 @@ def history(
                 else "Unknown"
             )
             console.print(f"[dim]Reading {i} - {timestamp_str}[/dim]")
-            display_reading(reading)
+            display_reading(reading, show_static=display_static, show_imagery=display_imagery)
             if i < len(readings):
                 console.print()
 

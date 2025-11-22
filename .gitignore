@@ -39,6 +39,9 @@ AGENTS.local.md
 # Agent context symlink (CLAUDE.md -> AGENTS.md)
 CLAUDE.md
 
+# Mockups
+mockups/
+
 # Virtual environments
 venv/
 env/
