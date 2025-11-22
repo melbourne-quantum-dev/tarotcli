@@ -743,6 +743,99 @@ git push origin v0.4.0
 
 **Actual effort**: ~4 hours (implementation, testing, docs, platformdirs, privacy features)
 
+### Milestone 6 (v0.6.0) - Rich Display Enhancement ✅
+
+**Scope**:
+
+- Integrate Rich library for terminal UI improvements
+- Add `--show-imagery` flag to `tarotcli read` command
+- Enhance both live readings and history display with Rich formatting
+- Improve text wrapping for long AI interpretations
+
+**Deliverables (All Complete)**:
+
+- `rich>=13.0.0` added to dependencies ✅
+- `display_reading()` refactored with Rich Console ✅
+- Color-coded output: cyan headers, green/red orientations, magenta bold ✅
+- Rich tables for card layout display ✅
+- Markdown rendering for AI interpretations (bold, headers colored) ✅
+- Yellow panels for Waite imagery descriptions ✅
+- `--show-imagery` flag on `tarotcli read` command ✅
+- `display.show_imagery` config option ✅
+- Interactive prompt for imagery (when config not set) ✅
+- TTY detection: Rich for terminal, plain markdown for file redirection ✅
+- `tarotcli history` uses Rich formatting ✅
+- `tarotcli lookup` uses Rich formatting ✅
+- All 130 tests pass ✅
+
+**Implementation Notes**:
+
+- Custom Rich theme for markdown: H1/bold magenta, H2 cyan, H3 blue
+- `_is_terminal()` helper detects stdout TTY
+- `_display_reading_rich()` for terminal, `_display_reading_plain()` for files
+- File redirection (`> reading.md`) produces clean markdown
+- Interactive header styled with Rich rule
+
+**Actual effort**: ~2 hours
+
+---
+
+### v0.6.5-0.6.7 - UX & Visual Polish ✅
+
+**v0.6.5 - UX Improvements**:
+
+- Unified interactive menu: standalone `tarotcli` command with looping menu
+- Card alias expansion: "magician" → "The Magician", common abbreviations supported
+- Config fix: removed `show_imagery` default to enable interactive prompt
+- Updated usage examples in docs
+
+**v0.6.6 - Visual Polish**:
+
+- "Mystical" Rich theme: purple/magenta colour palette for readings
+- AI processing spinner with contextual messages
+- Aligned lookup command styling with reading display
+- Test fix: mock config in graceful degradation test
+
+**v0.6.7 - UI Architecture Refinement**:
+
+**Static Interpretation Redesign**:
+- Eliminated redundant static interpretation panel
+- Added conditional "Meaning (Waite 1911)" column to cards table
+- Color-coded meanings: green (upright), red (reversed) matching orientation
+- Grid lines (`box.SIMPLE_HEAVY`) for multi-card spread readability
+- Dynamic table: 3-5 columns based on display preferences
+
+**Imagery Consolidation**:
+- Moved Waite imagery descriptions from separate yellow panels into table's 5th column
+- Single source of truth: all card data in unified table
+- Reduced visual clutter and scrolling (especially Celtic Cross)
+- Clean separation: Table = static data, Panel = AI interpretation only
+
+**Interactive Display Preferences**:
+- Removed `display.show_imagery` and `display.show_static` from `default.yaml`
+- Added interactive prompts when config not set (discoverable UX)
+- Consistent pattern: prompt → config → fallback default
+- Both preferences now follow identical flow
+
+**Tech Mystic Color Palette**:
+- Replaced bright cyan (#00FFFF) with professional steel blue (#4682B4)
+- Increased tundra grey (#A8B5BF) usage for neutral structural elements
+- Question box: Gold border with tundra text (subtle, less imposing)
+- Table borders: Tundra (masculine/techy aesthetic)
+- Removed "Interpretation" section rule (reduced visual clutter)
+- Updated AI panel title: "🔮 AI Narrative Interpretation"
+
+**Bug Fixes**:
+- Fixed `ctx.invoke()` passing `OptionInfo` objects instead of None
+- Fixed `focus_area` typo in CLI argument handling
+- Fixed question box color typo: `#A8B5B` → `#A8B5BF`
+- Fixed table padding: float `0.5` → integer `1` (Rich compatibility)
+- Fixed flaky test: orientation count now checks structured format
+
+**Test Coverage**: All 132 tests passing
+
+**Combined effort**: ~6 hours across three sessions
+
 ---
 
 ## Future Work
@@ -787,61 +880,6 @@ git push origin v0.4.0
   3. Add explicit constraint: "Only reference symbols actually present in the drawn cards"
   4. Combined: "References specific symbolic elements **only from the cards drawn above**"
 - Workaround: Use larger models (Claude, GPT-4) or keep questions concise
-
----
-
-### Milestone 6 (v0.6.0) - Rich Display Enhancement ✅
-
-**Scope**:
-
-- Integrate Rich library for terminal UI improvements
-- Add `--show-imagery` flag to `tarotcli read` command
-- Enhance both live readings and history display with Rich formatting
-- Improve text wrapping for long AI interpretations
-
-**Deliverables (All Complete)**:
-
-- `rich>=13.0.0` added to dependencies ✅
-- `display_reading()` refactored with Rich Console ✅
-- Color-coded output: cyan headers, green/red orientations, magenta bold ✅
-- Rich tables for card layout display ✅
-- Markdown rendering for AI interpretations (bold, headers colored) ✅
-- Yellow panels for Waite imagery descriptions ✅
-- `--show-imagery` flag on `tarotcli read` command ✅
-- `display.show_imagery` config option ✅
-- Interactive prompt for imagery (when config not set) ✅
-- TTY detection: Rich for terminal, plain markdown for file redirection ✅
-- `tarotcli history` uses Rich formatting ✅
-- `tarotcli lookup` uses Rich formatting ✅
-- All 130 tests pass ✅
-
-**Implementation Notes**:
-
-- Custom Rich theme for markdown: H1/bold magenta, H2 cyan, H3 blue
-- `_is_terminal()` helper detects stdout TTY
-- `_display_reading_rich()` for terminal, `_display_reading_plain()` for files
-- File redirection (`> reading.md`) produces clean markdown
-- Interactive header styled with Rich rule
-
-**Actual effort**: ~2 hours
-
----
-
-### v0.6.5-0.6.6 - UX & Visual Polish ✅
-
-**v0.6.5 - UX Improvements**:
-- Unified interactive menu: standalone `tarotcli` command with looping menu
-- Card alias expansion: "magician" → "The Magician", common abbreviations supported
-- Config fix: removed `show_imagery` default to enable interactive prompt
-- Updated usage examples in docs
-
-**v0.6.6 - Visual Polish**:
-- "Mystical" Rich theme: purple/magenta colour palette for readings
-- AI processing spinner with contextual messages
-- Aligned lookup command styling with reading display
-- Test fix: mock config in graceful degradation test
-
-**Combined effort**: ~3 hours across two sessions
 
 ---
 
