@@ -31,11 +31,11 @@ from rich.align import Align
 mystical_theme = Theme(
     {
         "markdown.h1": "bold #AF00FF",  # Deep Purple
-        "markdown.h2": "bold #00FFFF",  # Cyan
+        "markdown.h2": "bold #A8B5BF",  # Tundra (replaced cyan)
         "markdown.h3": "bold #FFD700",  # Gold
         "markdown.strong": "bold #FFD700",  # Gold for emphasis
         "panel.border": "#AF00FF",  # Deep Purple borders
-        "box.border": "#00FFFF",  # Cyan box borders
+        "box.border": "#A8B5BF",  # Tundra box borders
         "table.header": "bold #FFD700",  # Gold table headers
         "tundra": "#A8B5BF",  # Tundra metallic grey
     }
@@ -166,9 +166,7 @@ def prompt_show_static() -> bool:
     Returns:
         True to show static meanings in table column, False otherwise.
     """
-    return questionary.confirm(
-        "Show card meanings in table?", default=True
-    ).ask()
+    return questionary.confirm("Show card meanings in table?", default=True).ask()
 
 
 def gather_reading_inputs() -> Optional[
@@ -281,9 +279,9 @@ def _display_reading_rich(
         console.print(
             Align.center(
                 Panel(
-                    f"[italic #A8B5B]\"{reading.question}\"[/italic #A8B5B]",
-                    title="[bold white]✨ Your Question ✨[/bold white]",
-                    border_style="#AF00FF",  # Gold border
+                    f'[italic #A8B5BF]"{reading.question}"[/italic #A8B5BF]',  # Tundra italics
+                    title="[bold white]❔ Your Question ❔[/bold white]",
+                    border_style="#A8B5BF",  # Tundra border
                     box=box.DOUBLE,  # Elegant double-line border
                     padding=(1, 4),  # More spacious padding
                     expand=False,
@@ -302,7 +300,7 @@ def _display_reading_rich(
         box=box.SIMPLE_HEAVY,  # Grid lines for better row separation
         padding=(1, 1),  # Vertical and horizontal padding (must be integers)
         header_style="bold #FFD700",
-        border_style="white",
+        border_style="#A8B5BF",  # Tundra - neutral structural element
         title="[bold white]Cards Drawn[/bold white]",
         title_style="bold white",
     )
@@ -314,7 +312,9 @@ def _display_reading_rich(
         table.add_column("Meaning (Waite 1911)", justify="full", no_wrap=False)
 
     if show_imagery:
-        table.add_column("Imagery (Waite 1911)", justify="full", no_wrap=False, style="#A8B5BF")
+        table.add_column(
+            "Imagery (Waite 1911)", justify="full", no_wrap=False, style="#A8B5BF"
+        )
 
     for card in reading.cards:
         orientation = (
@@ -329,7 +329,9 @@ def _display_reading_rich(
         if show_meaning_column:
             # Color-code meaning to match orientation (green for upright, red for reversed)
             meaning_color = "red" if card.reversed else "green"
-            meaning_text = f"[{meaning_color}]{card.effective_meaning}[/{meaning_color}]"
+            meaning_text = (
+                f"[{meaning_color}]{card.effective_meaning}[/{meaning_color}]"
+            )
             row_data.append(meaning_text)
 
         if show_imagery:
@@ -343,12 +345,12 @@ def _display_reading_rich(
     # Interpretation Panel
     # Only show if AI interpretation exists (meanings already in table for static mode)
     if reading.interpretation:
-        console.rule("[bold #00FFFF]Interpretation[/bold #00FFFF]", style="#00FFFF")
-        console.print()
+        # console.rule("[bold #4682B4]Interpretation[/bold #4682B4]", style="#4682B4")
+        # console.print()
         console.print(
             Panel(
                 Markdown(reading.interpretation),
-                title="[bold #AF00FF]🔮 AI Narrative[/bold #AF00FF]",
+                title="[bold #AF00FF]🔮 AI Narrative Interpretation[/bold #AF00FF]",
                 border_style="#AF00FF",
                 padding=(1, 2),
             )
