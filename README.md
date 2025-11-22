@@ -4,7 +4,7 @@ Minimalist tarot reading CLI with optional AI interpretation.
 
 Works offline with static meanings and card lookup. Plug and play with Claude/OpenAI/Ollama.
 
-**Status:** v0.6.5 - Production ready, actively maintained
+**Status:** v0.6.7 - Production ready, actively maintained
 
 ---
 
